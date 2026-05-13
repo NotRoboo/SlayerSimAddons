@@ -1,0 +1,32 @@
+{
+	"schemaVersion": 1,
+	"id": "autowither",
+	"version": "${version}",
+	"name": "AutoWither",
+	"description": "Withers are boring!",
+	"authors": [
+		"Roboo"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/autowither/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"com.roboo.AutoWither"
+		]
+	},
+	"mixins": [
+		"autowither.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.2",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*",
+		"cloth-config": "*"
+	}
+}
