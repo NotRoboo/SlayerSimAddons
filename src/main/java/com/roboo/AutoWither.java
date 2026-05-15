@@ -188,13 +188,13 @@ public class AutoWither implements ClientModInitializer {
 				} else if (!summonFailed) {
 					long elapsed = System.currentTimeMillis() - summonPosEntryTime;
 
-					if (summonAttemptCount == 1 && elapsed >= 5000) {
+					if (summonAttemptCount == 1 && elapsed >= 1000) {
 						summonAttemptCount = 2;
 						InventoryHelper.useSummonItem();
-					} else if (summonAttemptCount == 2 && elapsed >= 10000) {
+					} else if (summonAttemptCount == 2 && elapsed >= 5000) {
 						summonAttemptCount = 3;
 						InventoryHelper.useSummonItem();
-					} else if (summonAttemptCount == 3 && elapsed >= 15000) {
+					} else if (summonAttemptCount == 3 && elapsed >= 10000) {
 						summonFailed = true;
 						client.gui.getChat().addMessage(Component.literal(
 								"§e[AutoWither] §cSummon failed — still at summon position after 15s!"
