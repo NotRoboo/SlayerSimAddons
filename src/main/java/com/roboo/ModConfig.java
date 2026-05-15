@@ -8,7 +8,8 @@ public class ModConfig {
     private static boolean autoSummonEnabled = true;
     private static boolean autoDodgeEnabled = true;
     private static boolean autoReconnectEnabled = true;
-    private static boolean warpToVolcano = true;
+    private static boolean crescentTowerEnabled = false;
+    private static boolean volcanoEnabled = false;
 
     public static boolean isComboAttackEnabled() { return comboAttackEnabled; }
     public static boolean isWitherMagicEnabled() { return witherMagicEnabled; }
@@ -16,7 +17,8 @@ public class ModConfig {
     public static boolean isAutoSummonEnabled() { return autoSummonEnabled; }
     public static boolean isAutoDodgeEnabled() { return autoDodgeEnabled; }
     public static boolean isAutoReconnectEnabled() { return autoReconnectEnabled; }
-    public static boolean isWarpToVolcano() { return warpToVolcano; }
+    public static boolean isCrescentTowerEnabled() { return crescentTowerEnabled; }
+    public static boolean isVolcanoEnabled() { return volcanoEnabled; }
 
     public static void setComboAttackEnabled(boolean v) { comboAttackEnabled = v; }
     public static void setWitherMagicEnabled(boolean v) { witherMagicEnabled = v; }
@@ -24,10 +26,7 @@ public class ModConfig {
     public static void setAutoSummonEnabled(boolean v) { autoSummonEnabled = v; }
     public static void setAutoDodgeEnabled(boolean v) { autoDodgeEnabled = v; }
     public static void setAutoReconnectEnabled(boolean v) { autoReconnectEnabled = v; }
-    public static void setWarpToVolcano(boolean v) { warpToVolcano = v; }
-
-    public static String getWarpDestination() {
-        return warpToVolcano ? "Ancient Volcano" : "Crescent Tower";
-    }
+    public static void setCrescentTowerEnabled(boolean v) { crescentTowerEnabled = v; }
+    public static void setVolcanoEnabled(boolean v) { volcanoEnabled = v; }
 }
 

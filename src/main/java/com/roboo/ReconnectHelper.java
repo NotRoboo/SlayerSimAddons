@@ -3,7 +3,6 @@ package com.roboo;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
 
 import java.util.LinkedList;
 import java.util.Locale;
@@ -16,17 +15,18 @@ public class ReconnectHelper {
     private record QueuedCommand(String command, long executeAt) {}
 
     private static final Queue<QueuedCommand> commandQueue = new LinkedList<>();
-    private static final long COOLDOWN_MS = 3000;
+    private static final long COOLDOWN_MS = 6000;
+    private static final long MIN_DELAY_MS = 3500;
+    private static final long MAX_DELAY_MS = 6000;
 
     private static boolean limboActive = false;
     private static long lastLimboRetry = 0;
-    private static final long LIMBO_RETRY_MIN = 5000;
+    private static final long LIMBO_RETRY_MIN = 7000;
     private static final long LIMBO_RETRY_MAX = 10000;
     private static long limboRetryInterval = LIMBO_RETRY_MIN;
 
     private static long lastLimboQueued = 0;
     private static long lastHousingQueued = 0;
-    private static long lastAlreadyConnectedQueued = 0;
 
     public static void init() {
         ClientReceiveMessageEvents.GAME.register((msg, overlay) ->
@@ -49,7 +49,6 @@ public class ReconnectHelper {
             limboRetryInterval = LIMBO_RETRY_MIN +
                     (long)((LIMBO_RETRY_MAX - LIMBO_RETRY_MIN) * Math.random());
             runCommand("lobby");
-            log("§eRetrying: /lobby (still in limbo)");
         }
 
         while (!commandQueue.isEmpty()) {
@@ -67,7 +66,7 @@ public class ReconnectHelper {
         if (msg == null) return;
         if (!ModConfig.isAutoReconnectEnabled()) return;
 
-        String clean = msg.toLowerCase(Locale.ROOT);
+        String clean = msg.replaceAll("§.", "").toLowerCase(Locale.ROOT);
         long now = System.currentTimeMillis();
 
         if (clean.contains("limbo for more information")) {
@@ -77,27 +76,17 @@ public class ReconnectHelper {
                 lastLimboRetry = now;
                 limboRetryInterval = LIMBO_RETRY_MIN;
                 commandQueue.clear();
-                enqueueAt("lobby", now + 1000);
-                log("§eQueued: /lobby (limbo detected, retries enabled)");
+                enqueueAt("lobby", now + randomDelay());
             }
         }
 
-        if (clean.contains("click here to view it!")) {
+        if (clean.contains("unclaimed leveling reward!")) {
             if (now - lastHousingQueued >= COOLDOWN_MS) {
                 lastHousingQueued = now;
                 limboActive = false;
                 long delay = resolveDelay(now);
                 enqueueAt("lobby housing", delay);
-                log("§eQueued: /lobby housing (housing invite detected)");
-            }
-        }
-
-        if (clean.contains("you are already connected to this server")) {
-            if (now - lastAlreadyConnectedQueued >= COOLDOWN_MS) {
-                lastAlreadyConnectedQueued = now;
-                long delay = resolveDelay(now);
-                enqueueAt("visit xsublimity", delay);
-                log("§eQueued: /visit xsublimity (already connected detected)");
+                enqueueAt("visit xsublimity", delay + 5000);
             }
         }
     }
@@ -106,14 +95,18 @@ public class ReconnectHelper {
         commandQueue.add(new QueuedCommand(command, executeAt));
     }
 
+    private static long randomDelay() {
+        return MIN_DELAY_MS + (long)((MAX_DELAY_MS - MIN_DELAY_MS) * Math.random());
+    }
+
     private static long resolveDelay(long now) {
-        long earliest = now + 1000;
+        long earliest = now + randomDelay();
         if (!commandQueue.isEmpty()) {
             long latestQueued = commandQueue.stream()
                     .mapToLong(QueuedCommand::executeAt)
                     .max()
                     .orElse(now);
-            earliest = Math.max(earliest, latestQueued + COOLDOWN_MS);
+            earliest = Math.max(earliest, latestQueued + randomDelay());
         }
         return earliest;
     }
@@ -121,7 +114,6 @@ public class ReconnectHelper {
     private static void runCommand(String command) {
         if (mc.player == null) return;
         mc.player.connection.sendCommand(command);
-        log("§aRan: /" + command);
 
         if (command.equals("visit xsublimity")) {
             ContainerHelper.waitForSlayerMenu();
@@ -132,13 +124,5 @@ public class ReconnectHelper {
         limboActive = false;
         lastLimboRetry = 0;
         commandQueue.clear();
-    }
-
-    private static void log(String text) {
-        if (mc.gui != null) {
-            mc.gui.getChat().addMessage(
-                    Component.literal("§e[Reconnect] " + text)
-            );
-        }
     }
 }

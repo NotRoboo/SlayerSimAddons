@@ -2,49 +2,71 @@ package com.roboo;
 
 import net.minecraft.client.Minecraft;
 
+import java.util.Random;
+
 public class RotationHelper {
 
     private static final Minecraft mc = Minecraft.getInstance();
-
-    private static final float YAW_STEP = 6f;
-    private static final float PITCH_STEP = 6f;
+    private static final Random random = new Random();
+    private static final float BASE_SPEED = 0.15f;
+    private static final float SPEED_VARIANCE = 0.04f;
+    private static final float JITTER = 0.05f;
+    private static final float MIN_STEP = 0.3f;
 
     // =========================
-    // ROTATE BOTH AXES (FIXED)
+    // ROTATE BOTH AXES
     // =========================
     public static boolean lookAt(float targetYaw, float targetPitch) {
         if (mc.player == null) return false;
 
-        float currentYaw = mc.player.getYRot();
+        float currentYaw   = mc.player.getYRot();
         float currentPitch = mc.player.getXRot();
 
-        float yawDiff = wrapDegrees(targetYaw - currentYaw);
+        float yawDiff   = wrapDegrees(targetYaw - currentYaw);
         float pitchDiff = targetPitch - currentPitch;
 
-        // apply step
-        float newYaw = currentYaw + clamp(yawDiff, -YAW_STEP, YAW_STEP);
-        float newPitch = currentPitch + clamp(pitchDiff, -PITCH_STEP, PITCH_STEP);
+        boolean yawDone   = Math.abs(yawDiff)   < 0.5f;
+        boolean pitchDone = Math.abs(pitchDiff) < 0.5f;
 
-        mc.player.setYRot(newYaw);
-        mc.player.setXRot(newPitch);
+        if (!yawDone) {
+            float speed = BASE_SPEED + (random.nextFloat() * 2 - 1) * SPEED_VARIANCE;
+            float step  = yawDiff * speed;
 
-        // IMPORTANT: check ORIGINAL distance, not post-step noise
-        return Math.abs(yawDiff) < 1f && Math.abs(pitchDiff) < 1f;
+            if (Math.abs(step) < MIN_STEP) step = Math.copySign(MIN_STEP, yawDiff);
+            step += (random.nextFloat() * 2 - 1) * JITTER;
+
+            if (Math.abs(step) > Math.abs(yawDiff)) step = yawDiff;
+
+            mc.player.setYRot(currentYaw + step);
+        } else {
+            mc.player.setYRot(targetYaw);
+        }
+
+        if (!pitchDone) {
+            float speed = BASE_SPEED + (random.nextFloat() * 2 - 1) * SPEED_VARIANCE;
+            float step  = pitchDiff * speed;
+
+            if (Math.abs(step) < MIN_STEP) step = Math.copySign(MIN_STEP, pitchDiff);
+
+            step += (random.nextFloat() * 2 - 1) * JITTER;
+
+            if (Math.abs(step) > Math.abs(pitchDiff)) step = pitchDiff;
+
+            mc.player.setXRot(currentPitch + step);
+        } else {
+            mc.player.setXRot(targetPitch);
+        }
+
+        return yawDone && pitchDone;
     }
 
     // =========================
     // UTIL
     // =========================
-    private static float clamp(float value, float min, float max) {
-        return Math.max(min, Math.min(max, value));
-    }
-
     private static float wrapDegrees(float degrees) {
         degrees = degrees % 360.0F;
-
-        if (degrees >= 180.0F) degrees -= 360.0F;
+        if (degrees >= 180.0F)  degrees -= 360.0F;
         if (degrees < -180.0F) degrees += 360.0F;
-
         return degrees;
     }
 }

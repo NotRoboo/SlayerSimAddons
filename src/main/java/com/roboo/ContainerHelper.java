@@ -3,7 +3,6 @@ package com.roboo;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
 
@@ -31,7 +30,10 @@ public class ContainerHelper {
     }
 
     private static void onTick() {
-        if (mc.player == null || !ModConfig.isAutoReconnectEnabled()) return;
+        if (mc.player == null) return;
+
+        // Neither dungeon enabled — nothing to do
+        if (!ModConfig.isCrescentTowerEnabled() && !ModConfig.isVolcanoEnabled()) return;
 
         long now = System.currentTimeMillis();
 
@@ -52,7 +54,6 @@ public class ContainerHelper {
                         if (stack.getHoverName().getString().contains("ＳＬＡＹＥＲ ＳＩＭＵＬＡＴＯＲ")) {
                             clickSlot(i, ClickType.PICKUP, 0);
                             waitingForSlayer = false;
-                            log("§aClicked: ＳＬＡＹＥＲ ＳＩＭＵＬＡＴＯＲ");
                             return;
                         }
                     }
@@ -65,7 +66,13 @@ public class ContainerHelper {
             if (title != null && title.contains("Ghast Travel")) {
                 var menu = mc.player.containerMenu;
                 if (menu != null) {
-                    String destination = ModConfig.getWarpDestination();
+                    String destination = getDestination();
+                    if (destination == null) {
+                        waitingForWarp = false;
+                        modTriggeredWarp = false;
+                        return;
+                    }
+
                     for (int i = 0; i < menu.slots.size(); i++) {
                         ItemStack stack = menu.slots.get(i).getItem();
                         if (stack.isEmpty()) continue;
@@ -73,7 +80,6 @@ public class ContainerHelper {
                             clickSlot(i, ClickType.PICKUP, 0);
                             waitingForWarp = false;
                             modTriggeredWarp = false;
-                            log("§aClicked: " + destination);
 
                             if (destination.equals("Crescent Tower")) {
                                 CrescentTowerHelper.trigger();
@@ -89,20 +95,24 @@ public class ContainerHelper {
 
     private static void handleMessage(String msg) {
         if (msg == null) return;
-        if (!ModConfig.isAutoReconnectEnabled()) return;
+        if (!ModConfig.isCrescentTowerEnabled() && !ModConfig.isVolcanoEnabled()) return;
 
         String clean = msg.toLowerCase(Locale.ROOT);
 
         if (clean.contains("sending you to ｓｌａｙｅｒ ｓｉｍｕｌａｔｏｒ")) {
             pendingWarpTime = System.currentTimeMillis() + COMMAND_DELAY_MS;
             waitingForWarp = true;
-            log("§eQueued: /warp (Slayer Simulator confirmed)");
         }
+    }
+
+    private static String getDestination() {
+        if (ModConfig.isCrescentTowerEnabled()) return "Crescent Tower";
+        if (ModConfig.isVolcanoEnabled()) return "Ancient Volcano";
+        return null;
     }
 
     public static void waitForSlayerMenu() {
         waitingForSlayer = true;
-        log("§eWaiting for xSublimity's Houses menu...");
     }
 
     public static void reset() {
@@ -135,14 +145,5 @@ public class ContainerHelper {
     private static void runCommand(String command) {
         if (mc.player == null) return;
         mc.player.connection.sendCommand(command);
-        log("§aRan: /" + command);
-    }
-
-    private static void log(String text) {
-        if (mc.gui != null) {
-            mc.gui.getChat().addMessage(
-                    Component.literal("§e[Container] " + text)
-            );
-        }
     }
 }

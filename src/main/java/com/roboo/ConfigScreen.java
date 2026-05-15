@@ -13,8 +13,12 @@ public class ConfigScreen {
                 .setParentScreen(parent)
                 .setTitle(Component.literal("§e[AutoWither] §fSettings"));
 
-        ConfigCategory combat = builder.getOrCreateCategory(Component.literal("Combat"));
         ConfigEntryBuilder entry = builder.entryBuilder();
+
+        // =========================
+        // COMBAT
+        // =========================
+        ConfigCategory combat = builder.getOrCreateCategory(Component.literal("Combat"));
 
         combat.addEntry(entry
                 .startBooleanToggle(Component.literal("Combo Attack"), ModConfig.isComboAttackEnabled())
@@ -58,11 +62,23 @@ public class ConfigScreen {
                 .setSaveConsumer(ModConfig::setAutoReconnectEnabled)
                 .build());
 
-        combat.addEntry(entry
-                .startBooleanToggle(Component.literal("Warp: Ancient Volcano"), ModConfig.isWarpToVolcano())
-                .setDefaultValue(true)
-                .setTooltip(Component.literal("ON = Ancient Volcano, OFF = Crescent Tower"))
-                .setSaveConsumer(ModConfig::setWarpToVolcano)
+        // =========================
+        // DUNGEON
+        // =========================
+        ConfigCategory mobPathing = builder.getOrCreateCategory(Component.literal("Mob Pathing"));
+
+        mobPathing.addEntry(entry
+                .startBooleanToggle(Component.literal("Crescent Tower"), ModConfig.isCrescentTowerEnabled())
+                .setDefaultValue(false)
+                .setTooltip(Component.literal("Enable auto-routing for Crescent Tower — disable Volcano if using this"))
+                .setSaveConsumer(ModConfig::setCrescentTowerEnabled)
+                .build());
+
+        mobPathing.addEntry(entry
+                .startBooleanToggle(Component.literal("Ancient Volcano"), ModConfig.isVolcanoEnabled())
+                .setDefaultValue(false)
+                .setTooltip(Component.literal("Enable auto-routing for Ancient Volcano — disable Crescent Tower if using this"))
+                .setSaveConsumer(ModConfig::setVolcanoEnabled)
                 .build());
 
         builder.setSavingRunnable(ConfigManager::save);

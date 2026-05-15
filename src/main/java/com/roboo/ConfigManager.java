@@ -14,7 +14,6 @@ public class ConfigManager {
             .getConfigDir()
             .resolve("autowither.json");
 
-    // Mirror of ModConfig fields for serialization
     private static class ConfigData {
         boolean comboAttackEnabled = true;
         boolean witherMagicEnabled = true;
@@ -22,13 +21,14 @@ public class ConfigManager {
         boolean autoSummonEnabled = true;
         boolean autoDodgeEnabled = true;
         boolean autoReconnectEnabled = true;
-        boolean warpToVolcano = true;
+        boolean crescentTowerEnabled = false;
+        boolean volcanoEnabled = false;
     }
 
     public static void load() {
         File file = CONFIG_PATH.toFile();
         if (!file.exists()) {
-            save(); // write defaults on first run
+            save();
             return;
         }
 
@@ -42,7 +42,8 @@ public class ConfigManager {
             ModConfig.setAutoSummonEnabled(data.autoSummonEnabled);
             ModConfig.setAutoDodgeEnabled(data.autoDodgeEnabled);
             ModConfig.setAutoReconnectEnabled(data.autoReconnectEnabled);
-            ModConfig.setWarpToVolcano(data.warpToVolcano);
+            ModConfig.setCrescentTowerEnabled(data.crescentTowerEnabled);
+            ModConfig.setVolcanoEnabled(data.volcanoEnabled);
         } catch (IOException e) {
             System.err.println("[AutoWither] Failed to load config: " + e.getMessage());
         }
@@ -56,7 +57,8 @@ public class ConfigManager {
         data.autoSummonEnabled = ModConfig.isAutoSummonEnabled();
         data.autoDodgeEnabled = ModConfig.isAutoDodgeEnabled();
         data.autoReconnectEnabled = ModConfig.isAutoReconnectEnabled();
-        data.warpToVolcano = ModConfig.isWarpToVolcano();
+        data.crescentTowerEnabled = ModConfig.isCrescentTowerEnabled();
+        data.volcanoEnabled = ModConfig.isVolcanoEnabled();
 
         try (Writer writer = new FileWriter(CONFIG_PATH.toFile())) {
             GSON.toJson(data, writer);
