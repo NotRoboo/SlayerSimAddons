@@ -13,9 +13,7 @@ public class RotationHelper {
     private static final float JITTER = 0.05f;
     private static final float MIN_STEP = 0.3f;
 
-    // =========================
     // ROTATE BOTH AXES
-    // =========================
     public static boolean lookAt(float targetYaw, float targetPitch) {
         if (mc.player == null) return false;
 
@@ -60,9 +58,8 @@ public class RotationHelper {
         return yawDone && pitchDone;
     }
 
-    // =========================
+    
     // UTIL
-    // =========================
     private static float wrapDegrees(float degrees) {
         degrees = degrees % 360.0F;
         if (degrees >= 180.0F)  degrees -= 360.0F;

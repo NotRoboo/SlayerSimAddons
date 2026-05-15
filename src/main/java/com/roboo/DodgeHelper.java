@@ -23,9 +23,8 @@ public class DodgeHelper {
     private static long dodgeStartTime = 0;
     private static final long MAX_DODGE_TIME = 7000;
 
-    // =========================
+    
     // INIT
-    // =========================
     public static void init() {
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> onTick());
@@ -39,9 +38,8 @@ public class DodgeHelper {
         });
     }
 
-    // =========================
+    
     // START
-    // =========================
     public static void start() {
         if (dodging) return;
 
@@ -55,9 +53,6 @@ public class DodgeHelper {
         return dodging;
     }
 
-    // =========================
-    // TICK
-    // =========================
     private static void onTick() {
         if (mc.player == null || !dodging) return;
 
@@ -76,9 +71,8 @@ public class DodgeHelper {
         }
     }
 
-    // =========================
+    
     // CHAT
-    // =========================
     private static void handleMessage(String msg) {
         if (msg == null) return;
 
@@ -105,17 +99,12 @@ public class DodgeHelper {
         }
     }
 
-    // =========================
-    // CONFIG
-    // =========================
     public static void setRequiredSafes(boolean parry) {
         requiredSafes = parry ? 2 : 1;
         safeCount = 0;
     }
 
-    // =========================
-    // RESET (NEW — IMPORTANT)
-    // =========================
+    // RESET
     public static void reset() {
         dodging = false;
         forcedSneak = false;
@@ -125,9 +114,8 @@ public class DodgeHelper {
         dodgeStartTime = 0;
     }
 
-    // =========================
-    // STOP (FULL CLEANUP)
-    // =========================
+    
+    // STOP
     public static void stop() {
         if (mc.player == null) {
             reset();

@@ -13,7 +13,7 @@ public class ContainerHelper {
     private static final Minecraft mc = Minecraft.getInstance();
 
     private static boolean waitingForSlayer = false;
-    private static boolean waitingForWarp = false;
+    private static boolean waitingForWarp   = false;
     private static boolean modTriggeredWarp = false;
 
     private static long pendingWarpTime = 0;
@@ -32,18 +32,9 @@ public class ContainerHelper {
     private static void onTick() {
         if (mc.player == null) return;
 
-        // Neither dungeon enabled — nothing to do
-        if (!ModConfig.isCrescentTowerEnabled() && !ModConfig.isVolcanoEnabled()) return;
-
         long now = System.currentTimeMillis();
 
-        if (pendingWarpTime > 0 && now >= pendingWarpTime) {
-            pendingWarpTime = 0;
-            modTriggeredWarp = true;
-            runCommand("warp");
-        }
-
-        if (waitingForSlayer) {
+        if (waitingForSlayer && ModConfig.isAutoReconnectEnabled()) {
             String title = getContainerTitle();
             if (title != null && title.contains("xSublimity's Houses")) {
                 var menu = mc.player.containerMenu;
@@ -59,6 +50,14 @@ public class ContainerHelper {
                     }
                 }
             }
+        }
+
+        if (!ModConfig.isCrescentTowerEnabled() && !ModConfig.isVolcanoEnabled()) return;
+
+        if (pendingWarpTime > 0 && now >= pendingWarpTime) {
+            pendingWarpTime = 0;
+            modTriggeredWarp = true;
+            runCommand("warp");
         }
 
         if (waitingForWarp && modTriggeredWarp) {
@@ -116,10 +115,10 @@ public class ContainerHelper {
     }
 
     public static void reset() {
-        waitingForSlayer = false;
-        waitingForWarp = false;
-        modTriggeredWarp = false;
-        pendingWarpTime = 0;
+        waitingForSlayer   = false;
+        waitingForWarp     = false;
+        modTriggeredWarp   = false;
+        pendingWarpTime    = 0;
     }
 
     private static String getContainerTitle() {

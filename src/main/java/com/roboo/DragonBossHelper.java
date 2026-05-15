@@ -1,0 +1,291 @@
+package com.roboo;
+
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+
+public class DragonBossHelper {
+
+    private static final Minecraft mc = Minecraft.getInstance();
+
+    private static final double SPAWN_STRAFE_Z       = -13.5;
+    private static final double STRAFE_Z_TOLERANCE   = 0.175;
+
+    private static final double ATTACK_X             = -106.0;
+
+    private static final double SAFE_X               = -102.5;
+
+    private static final double SUMMON_X             = -119.5;
+    private static final double SUMMON_Y             =  106.0;
+    private static final double SUMMON_Z             =  -50.9;
+    private static final double SUMMON_TOLERANCE     =    1.5;
+
+    private static final double DEATH_SUMMON_X       =  -29.0;
+    private static final double DEATH_SUMMON_Y       =  107.0;
+    private static final double DEATH_SUMMON_Z       =  -57.0;
+    private static final double DEATH_SUMMON_TOLERANCE = 1.0;
+
+    private static final float BOSS_YAW   = 90f;
+    private static final float BOSS_PITCH =  0f;
+
+    private static final double ARENA_MIN_X = -112.0;
+    private static final double ARENA_MAX_X =  -87.0;
+    private static final double ARENA_MIN_Y =   85.0;
+    private static final double ARENA_MAX_Y =  100.0;
+    private static final double ARENA_MIN_Z =  -20.0;
+    private static final double ARENA_MAX_Z =   -5.0;
+
+    
+    // STATE
+    private enum Phase {
+        IDLE,
+        ROTATE_TO_BOSS,
+        STRAFE_LEFT,
+        MOVE_FORWARD
+    }
+
+    private static Phase phase         = Phase.IDLE;
+    private static boolean holdClick   = false;
+    private static boolean moveToSafe  = false;
+    private static boolean dodgeQueued = false;
+    private static boolean parryQueued = false;
+    private static boolean dodgeTriggered      = false;
+    private static boolean waitingToStopDodge  = false;
+    private static boolean comboActive         = false;
+
+    private static long entryTime  = 0;
+    private static long safeTime   = 0;
+
+    // Summon state
+    private static boolean atSummonPos       = false;
+    private static long    summonPosEntryTime = 0;
+    private static int     summonAttemptCount = 0;
+    private static boolean summonFailed       = false;
+
+    private static boolean wasInArena = false;
+    private static boolean wasHolding = false;
+
+    
+    // INIT
+    public static void init() {
+        ClientReceiveMessageEvents.GAME.register((msg, overlay) -> handleChat(msg.getString()));
+        ClientReceiveMessageEvents.CHAT.register((msg, signed, sender, params, ts) -> handleChat(msg.getString()));
+        ClientTickEvents.END_CLIENT_TICK.register(client -> onTick(client));
+    }
+
+    
+    // TICK
+    private static void onTick(Minecraft client) {
+        if (!ModConfig.isAutoDragonBossEnabled() || !AutoWither.isEnabled()) return;
+        if (mc.player == null || mc.level == null) return;
+
+        if (phase != Phase.IDLE) {
+            double px = mc.player.getX();
+            double py = mc.player.getY();
+            double pz = mc.player.getZ();
+            boolean inArena = px >= ARENA_MIN_X && px <= ARENA_MAX_X
+                    && py >= ARENA_MIN_Y && py <= ARENA_MAX_Y
+                    && pz >= ARENA_MIN_Z && pz <= ARENA_MAX_Z;
+            if (!inArena && wasInArena) {
+                wasInArena = false;
+                fullReset();
+                return;
+            }
+            wasInArena = inArena;
+        }
+
+        long now = System.currentTimeMillis();
+
+        switch (phase) {
+            case ROTATE_TO_BOSS -> {
+                if (now - entryTime < 1500) {
+                    if (RotationHelper.lookAt(BOSS_YAW, BOSS_PITCH)) {
+                        phase = Phase.STRAFE_LEFT;
+                    }
+                }
+            }
+            case STRAFE_LEFT -> {
+                if (MovementHelper.moveToZ(SPAWN_STRAFE_Z, STRAFE_Z_TOLERANCE)) {
+                    phase = Phase.MOVE_FORWARD;
+                }
+            }
+            case MOVE_FORWARD -> {
+                if (MovementHelper.moveToX(ATTACK_X)) {
+                    phase     = Phase.IDLE;
+                    holdClick = true;
+                }
+            }
+            default -> {}
+        }
+
+        if (moveToSafe) {
+            if (MovementHelper.moveToX(SAFE_X)) {
+                moveToSafe = false;
+                if (dodgeQueued && !dodgeTriggered && ModConfig.isAutoDodgeEnabled()) {
+                    DodgeHelper.setRequiredSafes(parryQueued);
+                    DodgeHelper.start();
+                    if (parryQueued) ParryHelper.trigger();
+                    dodgeTriggered = true;
+                    dodgeQueued    = false;
+                    parryQueued    = false;
+                }
+            }
+        }
+
+        if (holdClick && !wasHolding) {
+            InputHelper.holdRightClick(true);
+            wasHolding = true;
+        } else if (!holdClick && wasHolding) {
+            InputHelper.holdRightClick(false);
+            wasHolding = false;
+        }
+
+        if (waitingToStopDodge && now - safeTime > 100) {
+            DodgeHelper.stop();
+            dodgeTriggered     = false;
+            waitingToStopDodge = false;
+        }
+
+        if (comboActive && ModConfig.isAutoDodgeEnabled()) {
+            holdClick = false;
+            if (!dodgeTriggered) {
+                DodgeHelper.setRequiredSafes(true);
+                DodgeHelper.start();
+                ParryHelper.trigger();
+                dodgeTriggered = true;
+            }
+        }
+
+        handleSummonPosition(client);
+    }
+
+    
+    // SUMMON POSITION LOGIC
+    private static void handleSummonPosition(Minecraft client) {
+        double px = mc.player.getX();
+        double py = mc.player.getY();
+        double pz = mc.player.getZ();
+
+        boolean nearSummonPos =
+                (Math.abs(px - SUMMON_X) <= SUMMON_TOLERANCE &&
+                        Math.abs(py - SUMMON_Y) <= SUMMON_TOLERANCE &&
+                        Math.abs(pz - SUMMON_Z) <= SUMMON_TOLERANCE)
+                        ||
+                        (Math.abs(px - DEATH_SUMMON_X) <= DEATH_SUMMON_TOLERANCE &&
+                                Math.abs(py - DEATH_SUMMON_Y) <= DEATH_SUMMON_TOLERANCE &&
+                                Math.abs(pz - DEATH_SUMMON_Z) <= DEATH_SUMMON_TOLERANCE);
+
+        if (nearSummonPos) {
+            if (!atSummonPos) {
+                atSummonPos        = true;
+                summonPosEntryTime = System.currentTimeMillis();
+                summonAttemptCount = 1;
+                summonFailed       = false;
+                InventoryHelper.useDragonKey();
+            } else if (!summonFailed) {
+                long elapsed = System.currentTimeMillis() - summonPosEntryTime;
+                if (summonAttemptCount == 1 && elapsed >= 1000) {
+                    summonAttemptCount = 2;
+                    InventoryHelper.useDragonKey();
+                } else if (summonAttemptCount == 2 && elapsed >= 5000) {
+                    summonAttemptCount = 3;
+                    InventoryHelper.useDragonKey();
+                } else if (summonAttemptCount == 3 && elapsed >= 10000) {
+                    summonFailed = true;
+                    client.gui.getChat().addMessage(Component.literal(
+                            "§e[DragonBoss] §cSummon failed — still at summon position after 15s!"));
+                }
+            }
+        } else {
+            atSummonPos        = false;
+            summonAttemptCount = 0;
+            summonFailed       = false;
+        }
+    }
+
+    
+    // CHAT
+    public static void handleChat(String msg) {
+        if (!ModConfig.isAutoDragonBossEnabled() || !AutoWither.isEnabled()) return;
+        if (msg == null) return;
+
+        String lower = msg.toLowerCase();
+
+        // Spawn trigger
+        if (lower.contains("you opened the nest of black dragon")) {
+            phase     = Phase.ROTATE_TO_BOSS;
+            entryTime = System.currentTimeMillis();
+            resetCombatState();
+        }
+
+        // Dark Slash = same as Combo Attack
+        else if (lower.contains("dark slash") && ModConfig.isComboAttackEnabled()) {
+            comboActive    = true;
+            dodgeTriggered = false;
+        }
+
+        // Void Storm: move to safe → dodge (no parry)
+        else if (lower.contains("void storm")) {
+            moveToSafe     = true;
+            holdClick      = false;
+            dodgeQueued    = true;
+            parryQueued    = false;
+            dodgeTriggered = false;
+        }
+
+        // Heroic Strike: parry only, no dodge movement
+        else if (lower.contains("heroic strike")) {
+            ParryHelper.trigger();
+        }
+
+        // Death Bless: move to safe → dodge + parry
+        else if (lower.contains("death bless")) {
+            moveToSafe     = true;
+            holdClick      = false;
+            dodgeQueued    = true;
+            parryQueued    = true;
+            dodgeTriggered = false;
+        }
+
+        else if (lower.contains("safe!!!")) {
+            holdClick          = true;
+            moveToSafe         = false;
+            comboActive        = false;
+            dodgeQueued        = false;
+            parryQueued        = false;
+            safeTime           = System.currentTimeMillis();
+            waitingToStopDodge = true;
+            phase = Phase.MOVE_FORWARD;
+        }
+
+        else if (lower.contains("you died")) {
+            InputHelper.stopAll();
+            DodgeHelper.stop();
+            ParryHelper.reset();
+            fullReset();
+        }
+    }
+
+    private static void resetCombatState() {
+        moveToSafe         = false;
+        holdClick          = false;
+        wasHolding         = false;
+        comboActive        = false;
+        dodgeQueued        = false;
+        parryQueued        = false;
+        dodgeTriggered     = false;
+        waitingToStopDodge = false;
+        MovementHelper.stopMovement();
+    }
+
+    public static void fullReset() {
+        phase              = Phase.IDLE;
+        wasInArena         = false;
+        resetCombatState();
+        atSummonPos        = false;
+        summonAttemptCount = 0;
+        summonFailed       = false;
+        InputHelper.stopAll();
+    }
+}

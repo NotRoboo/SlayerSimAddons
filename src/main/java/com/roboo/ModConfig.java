@@ -2,31 +2,35 @@ package com.roboo;
 
 public class ModConfig {
 
-    private static boolean comboAttackEnabled = true;
-    private static boolean witherMagicEnabled = true;
-    private static boolean demonMagicEnabled = true;
-    private static boolean autoSummonEnabled = true;
-    private static boolean autoDodgeEnabled = true;
-    private static boolean autoReconnectEnabled = true;
-    private static boolean crescentTowerEnabled = false;
-    private static boolean volcanoEnabled = false;
+    private static boolean autoWitherBossEnabled    = true;
+    private static boolean autoDragonBossEnabled    = true;
 
-    public static boolean isComboAttackEnabled() { return comboAttackEnabled; }
-    public static boolean isWitherMagicEnabled() { return witherMagicEnabled; }
-    public static boolean isDemonMagicEnabled() { return demonMagicEnabled; }
-    public static boolean isAutoSummonEnabled() { return autoSummonEnabled; }
-    public static boolean isAutoDodgeEnabled() { return autoDodgeEnabled; }
-    public static boolean isAutoReconnectEnabled() { return autoReconnectEnabled; }
-    public static boolean isCrescentTowerEnabled() { return crescentTowerEnabled; }
-    public static boolean isVolcanoEnabled() { return volcanoEnabled; }
+    private static boolean comboAttackEnabled       = true;  // "Combo Attack / Dark Slash"
+    private static boolean autoDodgeEnabled         = true;  // "Auto Dodge / Parry"
 
-    public static void setComboAttackEnabled(boolean v) { comboAttackEnabled = v; }
-    public static void setWitherMagicEnabled(boolean v) { witherMagicEnabled = v; }
-    public static void setDemonMagicEnabled(boolean v) { demonMagicEnabled = v; }
-    public static void setAutoSummonEnabled(boolean v) { autoSummonEnabled = v; }
-    public static void setAutoDodgeEnabled(boolean v) { autoDodgeEnabled = v; }
-    public static void setAutoReconnectEnabled(boolean v) { autoReconnectEnabled = v; }
-    public static void setCrescentTowerEnabled(boolean v) { crescentTowerEnabled = v; }
-    public static void setVolcanoEnabled(boolean v) { volcanoEnabled = v; }
+    private static boolean autoReconnectEnabled     = true;
+    private static boolean hexPathfindingEnabled    = false; // was crescentTower
+    private static boolean fishingPathfindingEnabled = false; // was volcano
+
+    public static boolean isAutoWitherBossEnabled()      { return autoWitherBossEnabled; }
+    public static boolean isAutoDragonBossEnabled()      { return autoDragonBossEnabled; }
+    public static boolean isComboAttackEnabled()         { return comboAttackEnabled; }
+    public static boolean isAutoDodgeEnabled()           { return autoDodgeEnabled; }
+    public static boolean isAutoReconnectEnabled()       { return autoReconnectEnabled; }
+    public static boolean isHexPathfindingEnabled()      { return hexPathfindingEnabled; }
+    public static boolean isFishingPathfindingEnabled()  { return fishingPathfindingEnabled; }
+
+    public static boolean isCrescentTowerEnabled()       { return hexPathfindingEnabled; }
+    public static boolean isVolcanoEnabled()             { return fishingPathfindingEnabled; }
+
+    public static void setAutoWitherBossEnabled(boolean v)      { autoWitherBossEnabled = v; }
+    public static void setAutoDragonBossEnabled(boolean v)      { autoDragonBossEnabled = v; }
+    public static void setComboAttackEnabled(boolean v)         { comboAttackEnabled = v; }
+    public static void setAutoDodgeEnabled(boolean v)           { autoDodgeEnabled = v; }
+    public static void setAutoReconnectEnabled(boolean v)       { autoReconnectEnabled = v; }
+    public static void setHexPathfindingEnabled(boolean v)      { hexPathfindingEnabled = v; }
+    public static void setFishingPathfindingEnabled(boolean v)  { fishingPathfindingEnabled = v; }
+
+    public static void setCrescentTowerEnabled(boolean v)       { hexPathfindingEnabled = v; }
+    public static void setVolcanoEnabled(boolean v)             { fishingPathfindingEnabled = v; }
 }
-

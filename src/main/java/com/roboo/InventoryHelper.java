@@ -8,90 +8,75 @@ public class InventoryHelper {
 
     private static final Minecraft mc = Minecraft.getInstance();
 
-    private static final String TOKEN_NAME = "Lord Token";
+    public static final String WITHER_TOKEN_NAME = "Lord Token";
+    public static final String DRAGON_KEY_NAME   = "Dragon's Nest Key";
 
     private static int cachedSlot = -1;
 
-    // =========================
-    // CHECK IF TOKEN EXISTS IN HOTBAR
-    // =========================
+    
+    // FIND SLOT BY ITEM NAME (HOTBAR)
+    public static int findItemSlot(String itemName) {
+        if (mc.player == null) return -1;
+        for (int i = 0; i < 9; i++) {
+            ItemStack stack = mc.player.getInventory().getItem(i);
+            if (!stack.isEmpty() && stack.getHoverName().getString().contains(itemName)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    public static int findTokenSlot() {
+        return findItemSlot(WITHER_TOKEN_NAME);
+    }
+
     public static boolean hasSummonItem() {
         return findTokenSlot() != -1;
     }
 
-    // =========================
-    // FIND TOKEN SLOT (HOTBAR ONLY)
-    // =========================
-    public static int findTokenSlot() {
-        if (mc.player == null) return -1;
-
-        for (int i = 0; i < 9; i++) {
-            ItemStack stack = mc.player.getInventory().getItem(i);
-
-            if (!stack.isEmpty()) {
-                String name = stack.getHoverName().getString();
-
-                if (name.contains(TOKEN_NAME)) {
-                    return i;
-                }
-            }
-        }
-
-        return -1;
-    }
-
-    // =========================
-    // SELECT SLOT (SAFE MAPPING METHOD)
-    // =========================
+    
+    // SELECT SLOT
     public static void selectSlot(int slot) {
-        if (mc.player == null) return;
-        if (slot < 0 || slot > 8) return;
-
+        if (mc.player == null || slot < 0 || slot > 8) return;
         mc.player.getInventory().setSelectedSlot(slot);
     }
 
-    // =========================
-    // CACHE CURRENT SLOT
-    // =========================
+    
+    // CACHE / RESTORE
     public static void cacheSlot() {
         if (mc.player == null) return;
-
         cachedSlot = mc.player.getInventory().getSelectedSlot();
     }
 
-    // =========================
-    // RESTORE SLOT
-    // =========================
     public static void restoreSlot() {
-        if (mc.player == null) return;
-        if (cachedSlot == -1) return;
-
+        if (mc.player == null || cachedSlot == -1) return;
         mc.player.getInventory().setSelectedSlot(cachedSlot);
         cachedSlot = -1;
     }
 
-    // =========================
-// USE TOKEN (RIGHT CLICK FLOW)
-// =========================
-    public static boolean useSummonItem() {
+    
+    // USE ITEM BY NAME
+    public static boolean useItem(String itemName) {
         if (mc.player == null || mc.gameMode == null) return false;
 
-        int tokenSlot = findTokenSlot();
-        if (tokenSlot == -1) return false;  // Token not found — retry makes sense here
+        int slot = findItemSlot(itemName);
+        if (slot == -1) return false;
 
-        // save current slot
         cacheSlot();
-
-        // switch to token
-        selectSlot(tokenSlot);
-
-        // use item (right click equivalent)
+        selectSlot(slot);
         mc.gameMode.useItem(mc.player, InteractionHand.MAIN_HAND);
         mc.player.swing(InteractionHand.MAIN_HAND);
-
-        // restore previous slot
         restoreSlot();
 
-        return true;  // Token was found and use was attempted
+        return true;
+    }
+
+    // Wither summon
+    public static boolean useSummonItem() {
+        return useItem(WITHER_TOKEN_NAME);
+    }
+
+    // Dragon summon
+    public static boolean useDragonKey() {
+        return useItem(DRAGON_KEY_NAME);
     }
 }

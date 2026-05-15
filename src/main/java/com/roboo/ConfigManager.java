@@ -15,14 +15,16 @@ public class ConfigManager {
             .resolve("autowither.json");
 
     private static class ConfigData {
-        boolean comboAttackEnabled = true;
-        boolean witherMagicEnabled = true;
-        boolean demonMagicEnabled = true;
-        boolean autoSummonEnabled = true;
-        boolean autoDodgeEnabled = true;
-        boolean autoReconnectEnabled = true;
-        boolean crescentTowerEnabled = false;
-        boolean volcanoEnabled = false;
+        // Boss masters
+        boolean autoWitherBossEnabled    = true;
+        boolean autoDragonBossEnabled    = true;
+        // Shared combat
+        boolean comboAttackEnabled       = true;
+        boolean autoDodgeEnabled         = true;
+        // AFK features
+        boolean autoReconnectEnabled     = true;
+        boolean hexPathfindingEnabled    = false;
+        boolean fishingPathfindingEnabled = false;
     }
 
     public static void load() {
@@ -36,14 +38,13 @@ public class ConfigManager {
             ConfigData data = GSON.fromJson(reader, ConfigData.class);
             if (data == null) return;
 
+            ModConfig.setAutoWitherBossEnabled(data.autoWitherBossEnabled);
+            ModConfig.setAutoDragonBossEnabled(data.autoDragonBossEnabled);
             ModConfig.setComboAttackEnabled(data.comboAttackEnabled);
-            ModConfig.setWitherMagicEnabled(data.witherMagicEnabled);
-            ModConfig.setDemonMagicEnabled(data.demonMagicEnabled);
-            ModConfig.setAutoSummonEnabled(data.autoSummonEnabled);
             ModConfig.setAutoDodgeEnabled(data.autoDodgeEnabled);
             ModConfig.setAutoReconnectEnabled(data.autoReconnectEnabled);
-            ModConfig.setCrescentTowerEnabled(data.crescentTowerEnabled);
-            ModConfig.setVolcanoEnabled(data.volcanoEnabled);
+            ModConfig.setHexPathfindingEnabled(data.hexPathfindingEnabled);
+            ModConfig.setFishingPathfindingEnabled(data.fishingPathfindingEnabled);
         } catch (IOException e) {
             System.err.println("[AutoWither] Failed to load config: " + e.getMessage());
         }
@@ -51,14 +52,13 @@ public class ConfigManager {
 
     public static void save() {
         ConfigData data = new ConfigData();
-        data.comboAttackEnabled = ModConfig.isComboAttackEnabled();
-        data.witherMagicEnabled = ModConfig.isWitherMagicEnabled();
-        data.demonMagicEnabled = ModConfig.isDemonMagicEnabled();
-        data.autoSummonEnabled = ModConfig.isAutoSummonEnabled();
-        data.autoDodgeEnabled = ModConfig.isAutoDodgeEnabled();
-        data.autoReconnectEnabled = ModConfig.isAutoReconnectEnabled();
-        data.crescentTowerEnabled = ModConfig.isCrescentTowerEnabled();
-        data.volcanoEnabled = ModConfig.isVolcanoEnabled();
+        data.autoWitherBossEnabled     = ModConfig.isAutoWitherBossEnabled();
+        data.autoDragonBossEnabled     = ModConfig.isAutoDragonBossEnabled();
+        data.comboAttackEnabled        = ModConfig.isComboAttackEnabled();
+        data.autoDodgeEnabled          = ModConfig.isAutoDodgeEnabled();
+        data.autoReconnectEnabled      = ModConfig.isAutoReconnectEnabled();
+        data.hexPathfindingEnabled     = ModConfig.isHexPathfindingEnabled();
+        data.fishingPathfindingEnabled = ModConfig.isFishingPathfindingEnabled();
 
         try (Writer writer = new FileWriter(CONFIG_PATH.toFile())) {
             GSON.toJson(data, writer);

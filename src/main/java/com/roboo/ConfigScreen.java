@@ -15,70 +15,60 @@ public class ConfigScreen {
 
         ConfigEntryBuilder entry = builder.entryBuilder();
 
-        // =========================
-        // COMBAT
-        // =========================
-        ConfigCategory combat = builder.getOrCreateCategory(Component.literal("Combat"));
+        
+        // BOSS FEATURES
+        ConfigCategory bosses = builder.getOrCreateCategory(Component.literal("Boss Features"));
 
-        combat.addEntry(entry
-                .startBooleanToggle(Component.literal("Combo Attack"), ModConfig.isComboAttackEnabled())
+        bosses.addEntry(entry
+                .startBooleanToggle(Component.literal("Auto Wither Boss"), ModConfig.isAutoWitherBossEnabled())
                 .setDefaultValue(true)
-                .setTooltip(Component.literal("Dodge when boss uses Combo Attack"))
+                .setTooltip(Component.literal("Enables all Wither Boss automation (overrides individual toggles when on)"))
+                .setSaveConsumer(ModConfig::setAutoWitherBossEnabled)
+                .build());
+
+        bosses.addEntry(entry
+                .startBooleanToggle(Component.literal("Auto Dragon Boss"), ModConfig.isAutoDragonBossEnabled())
+                .setDefaultValue(true)
+                .setTooltip(Component.literal("Enables all Dragon Boss automation (overrides individual toggles when on)"))
+                .setSaveConsumer(ModConfig::setAutoDragonBossEnabled)
+                .build());
+
+        bosses.addEntry(entry
+                .startBooleanToggle(Component.literal("Combo Attack / Dark Slash"), ModConfig.isComboAttackEnabled())
+                .setDefaultValue(true)
+                .setTooltip(Component.literal("Dodge + parry when boss uses Combo Attack (Wither) or Dark Slash (Dragon)"))
                 .setSaveConsumer(ModConfig::setComboAttackEnabled)
                 .build());
 
-        combat.addEntry(entry
-                .startBooleanToggle(Component.literal("Wither Magic"), ModConfig.isWitherMagicEnabled())
-                .setDefaultValue(true)
-                .setTooltip(Component.literal("Move to safe zone on Wither Magic"))
-                .setSaveConsumer(ModConfig::setWitherMagicEnabled)
-                .build());
-
-        combat.addEntry(entry
-                .startBooleanToggle(Component.literal("Demon Magic"), ModConfig.isDemonMagicEnabled())
-                .setDefaultValue(true)
-                .setTooltip(Component.literal("Move to safe zone and dodge on Demon Magic"))
-                .setSaveConsumer(ModConfig::setDemonMagicEnabled)
-                .build());
-
-        combat.addEntry(entry
+        bosses.addEntry(entry
                 .startBooleanToggle(Component.literal("Auto Dodge / Parry"), ModConfig.isAutoDodgeEnabled())
                 .setDefaultValue(true)
-                .setTooltip(Component.literal("Enables DodgeHelper and ParryHelper during combat"))
+                .setTooltip(Component.literal("Enables DodgeHelper and ParryHelper during boss combat"))
                 .setSaveConsumer(ModConfig::setAutoDodgeEnabled)
                 .build());
 
-        combat.addEntry(entry
-                .startBooleanToggle(Component.literal("Auto Summon"), ModConfig.isAutoSummonEnabled())
-                .setDefaultValue(true)
-                .setTooltip(Component.literal("Automatically use Lord Token after kill or death"))
-                .setSaveConsumer(ModConfig::setAutoSummonEnabled)
-                .build());
+        // AFK FEATURES
+        ConfigCategory afk = builder.getOrCreateCategory(Component.literal("AFK Features"));
 
-        combat.addEntry(entry
+        afk.addEntry(entry
                 .startBooleanToggle(Component.literal("Auto Reconnect"), ModConfig.isAutoReconnectEnabled())
                 .setDefaultValue(true)
                 .setTooltip(Component.literal("Automatically run lobby/visit commands on disconnect messages"))
                 .setSaveConsumer(ModConfig::setAutoReconnectEnabled)
                 .build());
 
-        // =========================
-        // DUNGEON
-        // =========================
-        ConfigCategory mobPathing = builder.getOrCreateCategory(Component.literal("Mob Pathing"));
-
-        mobPathing.addEntry(entry
-                .startBooleanToggle(Component.literal("Crescent Tower"), ModConfig.isCrescentTowerEnabled())
+        afk.addEntry(entry
+                .startBooleanToggle(Component.literal("Hex Pathfinding"), ModConfig.isHexPathfindingEnabled())
                 .setDefaultValue(false)
-                .setTooltip(Component.literal("Enable auto-routing for Crescent Tower — disable Volcano if using this"))
-                .setSaveConsumer(ModConfig::setCrescentTowerEnabled)
+                .setTooltip(Component.literal("Enable auto-routing for Crescent Tower — disable Fishing Pathfinding if using this"))
+                .setSaveConsumer(ModConfig::setHexPathfindingEnabled)
                 .build());
 
-        mobPathing.addEntry(entry
-                .startBooleanToggle(Component.literal("Ancient Volcano"), ModConfig.isVolcanoEnabled())
+        afk.addEntry(entry
+                .startBooleanToggle(Component.literal("Fishing Pathfinding TBD"), ModConfig.isFishingPathfindingEnabled())
                 .setDefaultValue(false)
-                .setTooltip(Component.literal("Enable auto-routing for Ancient Volcano — disable Crescent Tower if using this"))
-                .setSaveConsumer(ModConfig::setVolcanoEnabled)
+                .setTooltip(Component.literal("Enable auto-routing for Ancient Volcano — disable Hex Pathfinding if using this"))
+                .setSaveConsumer(ModConfig::setFishingPathfindingEnabled)
                 .build());
 
         builder.setSavingRunnable(ConfigManager::save);
