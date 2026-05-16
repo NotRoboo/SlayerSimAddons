@@ -13,13 +13,15 @@ public class ElfHelper {
     private static final double TARGET_Z_1        = -43.3;
     private static final double TARGET_X_1        = -113.3;
     private static final double TARGET_Z_2        = -45.7;
-    private static final double TARGET_X_2        = -108.5;
-    private static final double TARGET_Z_3        = -54.5;
+    private static final double TARGET_X_2        = -109.3;
+    private static final double TARGET_Z_3        = -56.4;
 
     private static final double TOLERANCE         = 0.1;
 
     private static final float INIT_YAW           = 180f;
     private static final float INIT_PITCH         = 0f;
+    private static final float FINAL_YAW          = -65f;
+    private static final float FINAL_PITCH        = 30f;
     private static final float ROTATION_TOLERANCE = 0.3f;
 
     private static final long COMMAND_DELAY_MS    = 1000;
@@ -32,6 +34,7 @@ public class ElfHelper {
         MOVE_FORWARD_1,
         MOVE_RIGHT_2,
         MOVE_FORWARD_2,
+        FINAL_ROTATE,
         PENDING_MBAG,
         VIS_TOGGLE
     }
@@ -65,7 +68,6 @@ public class ElfHelper {
         if (clean.contains("warping...")) {
             stage = Stage.INIT_ROTATE;
             modTriggered = false;
-            OptionsHelper.enableAutoJump();
         }
     }
 
@@ -112,6 +114,15 @@ public class ElfHelper {
 
             case MOVE_FORWARD_2 -> {
                 if (MovementHelper.moveToZ(TARGET_Z_3, TOLERANCE, 0.3)) {
+                    stage = Stage.FINAL_ROTATE;
+                }
+            }
+
+            case FINAL_ROTATE -> {
+                boolean done    = RotationHelper.lookAt(FINAL_YAW, FINAL_PITCH);
+                float yawDiff   = Math.abs(wrapDegrees(mc.player.getYRot() - FINAL_YAW));
+                float pitchDiff = Math.abs(mc.player.getXRot() - FINAL_PITCH);
+                if (done || (yawDiff < ROTATION_TOLERANCE && pitchDiff < ROTATION_TOLERANCE)) {
                     stage = Stage.PENDING_MBAG;
                     pendingMbagTime = System.currentTimeMillis() + COMMAND_DELAY_MS;
                 }
@@ -129,7 +140,6 @@ public class ElfHelper {
                 if (now >= pendingVisTime) {
                     runCommand("visibility 0");
                     stage = Stage.IDLE;
-                    OptionsHelper.restoreAutoJump();
                 }
             }
         }
@@ -140,7 +150,6 @@ public class ElfHelper {
         modTriggered = false;
         pendingMbagTime = 0;
         MovementHelper.stopMovement();
-        OptionsHelper.restoreAutoJump();
     }
 
     private static float wrapDegrees(float degrees) {
