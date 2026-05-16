@@ -52,7 +52,8 @@ public class ContainerHelper {
             }
         }
 
-        if (!ModConfig.isCrescentTowerEnabled() && !ModConfig.isVolcanoEnabled()) return;
+        String mode = ModConfig.getPathfindingMode();
+        if (mode.equals("None")) return;
 
         if (pendingWarpTime > 0 && now >= pendingWarpTime) {
             pendingWarpTime = 0;
@@ -65,7 +66,7 @@ public class ContainerHelper {
             if (title != null && title.contains("Ghast Travel")) {
                 var menu = mc.player.containerMenu;
                 if (menu != null) {
-                    String destination = getDestination();
+                    String destination = getDestination(mode);
                     if (destination == null) {
                         waitingForWarp = false;
                         modTriggeredWarp = false;
@@ -82,6 +83,14 @@ public class ContainerHelper {
 
                             if (destination.equals("Crescent Tower")) {
                                 CrescentTowerHelper.trigger();
+                            } else if (destination.equals("Moonlight Island")) {
+                                if (ModConfig.getPathfindingMode().equals("Vampire")) {
+                                    VampireHelper.trigger();
+                                } else if (ModConfig.getPathfindingMode().equals("Priest")) {
+                                    PriestHelper.trigger();
+                                } else if (ModConfig.getPathfindingMode().equals("Elf")) {
+                                    ElfHelper.trigger();
+                                }
                             }
 
                             return;
@@ -94,7 +103,7 @@ public class ContainerHelper {
 
     private static void handleMessage(String msg) {
         if (msg == null) return;
-        if (!ModConfig.isCrescentTowerEnabled() && !ModConfig.isVolcanoEnabled()) return;
+        if (ModConfig.getPathfindingMode().equals("None")) return;
 
         String clean = msg.toLowerCase(Locale.ROOT);
 
@@ -104,10 +113,15 @@ public class ContainerHelper {
         }
     }
 
-    private static String getDestination() {
-        if (ModConfig.isCrescentTowerEnabled()) return "Crescent Tower";
-        if (ModConfig.isVolcanoEnabled()) return "Ancient Volcano";
-        return null;
+    private static String getDestination(String mode) {
+        return switch (mode) {
+            case "Echo"     -> "Crescent Tower";
+            case "AutoFish" -> "Ancient Volcano";
+            case "Vampire",
+                 "Priest",
+                 "Elf"    -> "Moonlight Island";
+            default         -> null;
+        };
     }
 
     public static void waitForSlayerMenu() {
@@ -115,10 +129,10 @@ public class ContainerHelper {
     }
 
     public static void reset() {
-        waitingForSlayer   = false;
-        waitingForWarp     = false;
-        modTriggeredWarp   = false;
-        pendingWarpTime    = 0;
+        waitingForSlayer = false;
+        waitingForWarp   = false;
+        modTriggeredWarp = false;
+        pendingWarpTime  = 0;
     }
 
     private static String getContainerTitle() {

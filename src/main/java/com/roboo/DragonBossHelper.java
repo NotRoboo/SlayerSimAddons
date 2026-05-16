@@ -24,7 +24,7 @@ public class DragonBossHelper {
     private static final double DEATH_SUMMON_X       =  -29.0;
     private static final double DEATH_SUMMON_Y       =  107.0;
     private static final double DEATH_SUMMON_Z       =  -57.0;
-    private static final double DEATH_SUMMON_TOLERANCE = 1.0;
+    private static final double DEATH_SUMMON_TOLERANCE = 1.5;
 
     private static final float BOSS_YAW   = 90f;
     private static final float BOSS_PITCH =  0f;
@@ -36,7 +36,7 @@ public class DragonBossHelper {
     private static final double ARENA_MIN_Z =  -20.0;
     private static final double ARENA_MAX_Z =   -5.0;
 
-    
+
     // STATE
     private enum Phase {
         IDLE,
@@ -58,35 +58,46 @@ public class DragonBossHelper {
     private static long safeTime   = 0;
 
     // Summon state
-    private static boolean atSummonPos       = false;
+    private static boolean atSummonPos        = false;
     private static long    summonPosEntryTime = 0;
     private static int     summonAttemptCount = 0;
     private static boolean summonFailed       = false;
 
     private static boolean wasInArena = false;
     private static boolean wasHolding = false;
+    private static boolean optionsApplied = false;
 
-    
-    // INIT
+
     public static void init() {
         ClientReceiveMessageEvents.GAME.register((msg, overlay) -> handleChat(msg.getString()));
         ClientReceiveMessageEvents.CHAT.register((msg, signed, sender, params, ts) -> handleChat(msg.getString()));
         ClientTickEvents.END_CLIENT_TICK.register(client -> onTick(client));
     }
 
-    
-    // TICK
     private static void onTick(Minecraft client) {
         if (!ModConfig.isAutoDragonBossEnabled() || !AutoWither.isEnabled()) return;
         if (mc.player == null || mc.level == null) return;
 
+        double px = mc.player.getX();
+        double py = mc.player.getY();
+        double pz = mc.player.getZ();
+
+        boolean inArena = px >= ARENA_MIN_X && px <= ARENA_MAX_X
+                && py >= ARENA_MIN_Y && py <= ARENA_MAX_Y
+                && pz >= ARENA_MIN_Z && pz <= ARENA_MAX_Z;
+
+        // Apply/restore options based on arena presence
+        if (inArena && !optionsApplied) {
+            OptionsHelper.enableAutoJump();
+            OptionsHelper.disableToggleSneak();
+            optionsApplied = true;
+        } else if (!inArena && optionsApplied) {
+            OptionsHelper.restoreAutoJump();
+            OptionsHelper.restoreToggleSneak();
+            optionsApplied = false;
+        }
+
         if (phase != Phase.IDLE) {
-            double px = mc.player.getX();
-            double py = mc.player.getY();
-            double pz = mc.player.getZ();
-            boolean inArena = px >= ARENA_MIN_X && px <= ARENA_MAX_X
-                    && py >= ARENA_MIN_Y && py <= ARENA_MAX_Y
-                    && pz >= ARENA_MIN_Z && pz <= ARENA_MAX_Z;
             if (!inArena && wasInArena) {
                 wasInArena = false;
                 fullReset();
@@ -160,8 +171,6 @@ public class DragonBossHelper {
         handleSummonPosition(client);
     }
 
-    
-    // SUMMON POSITION LOGIC
     private static void handleSummonPosition(Minecraft client) {
         double px = mc.player.getX();
         double py = mc.player.getY();
@@ -182,7 +191,11 @@ public class DragonBossHelper {
                 summonPosEntryTime = System.currentTimeMillis();
                 summonAttemptCount = 1;
                 summonFailed       = false;
-                InventoryHelper.useDragonKey();
+                boolean used = InventoryHelper.useDragonKey();
+                if (!used) {
+                    client.gui.getChat().addMessage(Component.literal(
+                            "§e[DragonBoss] §cNo Dragon Key found in hotbar!"));
+                }
             } else if (!summonFailed) {
                 long elapsed = System.currentTimeMillis() - summonPosEntryTime;
                 if (summonAttemptCount == 1 && elapsed >= 1000) {
@@ -204,28 +217,23 @@ public class DragonBossHelper {
         }
     }
 
-    
-    // CHAT
     public static void handleChat(String msg) {
         if (!ModConfig.isAutoDragonBossEnabled() || !AutoWither.isEnabled()) return;
         if (msg == null) return;
 
         String lower = msg.toLowerCase();
 
-        // Spawn trigger
         if (lower.contains("you opened the nest of black dragon")) {
             phase     = Phase.ROTATE_TO_BOSS;
             entryTime = System.currentTimeMillis();
             resetCombatState();
         }
 
-        // Dark Slash = same as Combo Attack
         else if (lower.contains("dark slash") && ModConfig.isComboAttackEnabled()) {
             comboActive    = true;
             dodgeTriggered = false;
         }
 
-        // Void Storm: move to safe → dodge (no parry)
         else if (lower.contains("void storm")) {
             moveToSafe     = true;
             holdClick      = false;
@@ -234,12 +242,10 @@ public class DragonBossHelper {
             dodgeTriggered = false;
         }
 
-        // Heroic Strike: parry only, no dodge movement
         else if (lower.contains("heroic strike")) {
             ParryHelper.trigger();
         }
 
-        // Death Bless: move to safe → dodge + parry
         else if (lower.contains("death bless")) {
             moveToSafe     = true;
             holdClick      = false;
@@ -286,6 +292,13 @@ public class DragonBossHelper {
         atSummonPos        = false;
         summonAttemptCount = 0;
         summonFailed       = false;
+
+        if (optionsApplied) {
+            OptionsHelper.restoreAutoJump();
+            OptionsHelper.restoreToggleSneak();
+            optionsApplied = false;
+        }
+
         InputHelper.stopAll();
     }
 }

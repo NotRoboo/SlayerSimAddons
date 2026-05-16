@@ -9,7 +9,7 @@ public class WitherBossHelper {
 
     private static final Minecraft mc = Minecraft.getInstance();
 
-    
+
     // POSITIONS
     private static final double FORWARD_X = -112;
     private static final double SAFE_X    = -106;
@@ -18,14 +18,21 @@ public class WitherBossHelper {
     private static final double SUMMON_Y =  102;
     private static final double SUMMON_Z =   42;
 
-    // Shared death-respawn summon position (same as Dragon)
     private static final double DEATH_SUMMON_X = -29;
     private static final double DEATH_SUMMON_Y = 107;
     private static final double DEATH_SUMMON_Z = -57;
 
     private static final double SUMMON_TOLERANCE = 1.0;
 
-    
+    // Arena bounds for toggleSneak tracking
+    private static final double ARENA_MIN_X = -96.0;
+    private static final double ARENA_MAX_X =  -115.0;
+    private static final double ARENA_MIN_Y =   85.0;
+    private static final double ARENA_MAX_Y =  98.0;
+    private static final double ARENA_MIN_Z =   41.0;
+    private static final double ARENA_MAX_Z =   52.0;
+
+
     // STATE
     private static boolean rotateToBoss = false;
     private static boolean moveForward  = false;
@@ -47,19 +54,34 @@ public class WitherBossHelper {
     private static int     summonAttemptCount = 0;
     private static boolean summonFailed       = false;
 
-    
-    // INIT
+    private static boolean optionsApplied = false;
+
     public static void init() {
         ClientReceiveMessageEvents.GAME.register((msg, overlay) -> handleChat(msg.getString()));
         ClientReceiveMessageEvents.CHAT.register((msg, signed, sender, params, ts) -> handleChat(msg.getString()));
         ClientTickEvents.END_CLIENT_TICK.register(client -> onTick(client));
     }
 
-    
-    // TICK
     private static void onTick(Minecraft client) {
         if (!ModConfig.isAutoWitherBossEnabled() || !AutoWither.isEnabled()) return;
         if (mc.player == null || mc.level == null) return;
+
+        double px = mc.player.getX();
+        double py = mc.player.getY();
+        double pz = mc.player.getZ();
+
+        boolean inArena = px >= ARENA_MIN_X && px <= ARENA_MAX_X
+                && py >= ARENA_MIN_Y && py <= ARENA_MAX_Y
+                && pz >= ARENA_MIN_Z && pz <= ARENA_MAX_Z;
+
+        if (inArena && !optionsApplied) {
+            OptionsHelper.disableToggleSneak();
+            optionsApplied = true;
+        } else if (!inArena && optionsApplied) {
+            OptionsHelper.restoreToggleSneak();
+            optionsApplied = false;
+        }
+
         if (rotateToBoss) {
             if (System.currentTimeMillis() - entryTime < 1500) {
                 if (RotationHelper.lookAt(90f, 0f)) {
@@ -69,7 +91,6 @@ public class WitherBossHelper {
             }
         }
 
-        // Move to attack position
         if (moveForward) {
             if (MovementHelper.moveToX(FORWARD_X)) {
                 moveForward = false;
@@ -77,7 +98,6 @@ public class WitherBossHelper {
             }
         }
 
-        // Move to safe zone
         if (moveToSafe) {
             if (MovementHelper.moveToX(SAFE_X)) {
                 moveToSafe = false;
@@ -98,14 +118,12 @@ public class WitherBossHelper {
             wasHolding = false;
         }
 
-        // Delayed dodge stop
         if (waitingToStopDodge && System.currentTimeMillis() - safeTime > 100) {
             DodgeHelper.stop();
             dodgeTriggered      = false;
             waitingToStopDodge  = false;
         }
 
-        // Combo attack dodge
         if (comboAttack && ModConfig.isAutoDodgeEnabled()) {
             holdClick = false;
             if (!dodgeTriggered) {
@@ -116,12 +134,9 @@ public class WitherBossHelper {
             }
         }
 
-        // Auto summon position check
         handleSummonPosition(client);
     }
 
-    
-    // SUMMON POSITION LOGIC
     private static void handleSummonPosition(Minecraft client) {
         double px = mc.player.getX();
         double py = mc.player.getY();
@@ -164,8 +179,6 @@ public class WitherBossHelper {
         }
     }
 
-    
-    // CHAT
     public static void handleChat(String msg) {
         if (!ModConfig.isAutoWitherBossEnabled() || !AutoWither.isEnabled()) return;
         if (msg == null) return;
@@ -182,7 +195,6 @@ public class WitherBossHelper {
             dodgeTriggered = false;
         }
         else if (lower.contains("wither magic")) {
-            // Wither magic: move to safe, no dodge
             witherMagic    = true;
             demonMagic     = false;
             moveToSafe     = true;
@@ -190,7 +202,6 @@ public class WitherBossHelper {
             dodgeTriggered = false;
         }
         else if (lower.contains("demon magic")) {
-            // Demon magic: move to safe then dodge
             demonMagic     = true;
             witherMagic    = false;
             moveToSafe     = true;
@@ -218,8 +229,6 @@ public class WitherBossHelper {
         }
     }
 
-    
-    // RESET
     private static void resetCombatState() {
         moveForward        = false;
         moveToSafe         = false;
@@ -243,6 +252,12 @@ public class WitherBossHelper {
         atSummonPos        = false;
         summonAttemptCount = 0;
         summonFailed       = false;
+
+        if (optionsApplied) {
+            OptionsHelper.restoreToggleSneak();
+            optionsApplied = false;
+        }
+
         InputHelper.stopAll();
     }
 }

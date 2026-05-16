@@ -15,7 +15,7 @@ public class ReconnectHelper {
     private record QueuedCommand(String command, long executeAt) {}
 
     private static final Queue<QueuedCommand> commandQueue = new LinkedList<>();
-    private static final long COOLDOWN_MS = 6000;
+    private static final long COOLDOWN_MS = 15000;
     private static final long MIN_DELAY_MS = 3500;
     private static final long MAX_DELAY_MS = 6000;
 

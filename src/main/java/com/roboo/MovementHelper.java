@@ -42,18 +42,21 @@ public class MovementHelper {
         KeyMapping left    = mc.options.keyLeft;
         KeyMapping right   = mc.options.keyRight;
 
-        if (isNear(yaw, 90f)) {
-            if (diff > 0) { forward.setDown(true);  back.setDown(inBrakeZone);    left.setDown(false); right.setDown(false); }
-            else           { back.setDown(true);     forward.setDown(inBrakeZone); left.setDown(false); right.setDown(false); }
-        } else if (isNear(yaw, -90f)) {
+        if (isNear(yaw, 0f)) {           // Facing South
+            if (diff > 0) { right.setDown(true); left.setDown(inBrakeZone); forward.setDown(false); back.setDown(false); }
+            else          { left.setDown(true);  right.setDown(inBrakeZone); forward.setDown(false); back.setDown(false); }
+        }
+        else if (isNear(yaw, 180f)) {    // Facing North
+            if (diff > 0) { left.setDown(true);  right.setDown(inBrakeZone); forward.setDown(false); back.setDown(false); }  // West = Left
+            else          { right.setDown(true); left.setDown(inBrakeZone);  forward.setDown(false); back.setDown(false); }  // East = Right
+        }
+        else if (isNear(yaw, 90f)) {     // Facing West
+            if (diff > 0) { forward.setDown(true);  back.setDown(inBrakeZone); left.setDown(false); right.setDown(false); }
+            else          { back.setDown(true);     forward.setDown(inBrakeZone); left.setDown(false); right.setDown(false); }
+        }
+        else if (isNear(yaw, -90f)) {    // Facing East
             if (diff > 0) { back.setDown(true);     forward.setDown(inBrakeZone); left.setDown(false); right.setDown(false); }
-            else           { forward.setDown(true);  back.setDown(inBrakeZone);    left.setDown(false); right.setDown(false); }
-        } else if (isNear(yaw, 0f)) {
-            if (diff > 0) { left.setDown(true);  right.setDown(inBrakeZone); forward.setDown(false); back.setDown(false); }
-            else           { right.setDown(true); left.setDown(inBrakeZone);  forward.setDown(false); back.setDown(false); }
-        } else if (isNear(yaw, 180f)) {
-            if (diff > 0) { right.setDown(true); left.setDown(inBrakeZone);  forward.setDown(false); back.setDown(false); }
-            else           { left.setDown(true);  right.setDown(inBrakeZone); forward.setDown(false); back.setDown(false); }
+            else          { forward.setDown(true);  back.setDown(inBrakeZone); left.setDown(false); right.setDown(false); }
         }
 
         return false;
@@ -74,7 +77,7 @@ public class MovementHelper {
         if (mc.player == null) return false;
 
         double pz   = mc.player.getZ();
-        double diff = pz - targetZ;
+        double diff = pz - targetZ;   // Positive diff = need to go more negative Z (North)
 
         if (Math.abs(diff) <= tolerance) {
             stopMovement();
@@ -89,18 +92,21 @@ public class MovementHelper {
         KeyMapping left    = mc.options.keyLeft;
         KeyMapping right   = mc.options.keyRight;
 
-        if (isNear(yaw, 0f)) {
-            if (diff > 0) { forward.setDown(true);  back.setDown(inBrakeZone);    left.setDown(false); right.setDown(false); }
-            else           { back.setDown(true);     forward.setDown(inBrakeZone); left.setDown(false); right.setDown(false); }
-        } else if (isNear(yaw, 180f)) {
+        if (isNear(yaw, 0f)) {           // Facing South (+Z)
             if (diff > 0) { back.setDown(true);     forward.setDown(inBrakeZone); left.setDown(false); right.setDown(false); }
-            else           { forward.setDown(true);  back.setDown(inBrakeZone);    left.setDown(false); right.setDown(false); }
-        } else if (isNear(yaw, 90f)) {
-            if (diff > 0) { right.setDown(true); left.setDown(inBrakeZone);  forward.setDown(false); back.setDown(false); }
-            else           { left.setDown(true);  right.setDown(inBrakeZone); forward.setDown(false); back.setDown(false); }
-        } else if (isNear(yaw, -90f)) {
+            else          { forward.setDown(true);  back.setDown(inBrakeZone);    left.setDown(false); right.setDown(false); }
+        }
+        else if (isNear(yaw, 180f)) {    // Facing North (-Z)
+            if (diff > 0) { forward.setDown(true);  back.setDown(inBrakeZone); left.setDown(false); right.setDown(false); }   // Fixed
+            else          { back.setDown(true);     forward.setDown(inBrakeZone); left.setDown(false); right.setDown(false); }
+        }
+        else if (isNear(yaw, 90f)) {     // Facing West (-X)
+            if (diff > 0) { right.setDown(true); left.setDown(inBrakeZone); forward.setDown(false); back.setDown(false); }
+            else          { left.setDown(true);  right.setDown(inBrakeZone); forward.setDown(false); back.setDown(false); }
+        }
+        else if (isNear(yaw, -90f)) {    // Facing East (+X)
             if (diff > 0) { left.setDown(true);  right.setDown(inBrakeZone); forward.setDown(false); back.setDown(false); }
-            else           { right.setDown(true); left.setDown(inBrakeZone);  forward.setDown(false); back.setDown(false); }
+            else          { right.setDown(true); left.setDown(inBrakeZone); forward.setDown(false); back.setDown(false); }
         }
 
         return false;

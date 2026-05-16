@@ -8,16 +8,19 @@ public class InputHelper {
 
     private static boolean rightClickHeld = false;
 
-    
-    // HOLD RIGHT CLICK
     public static void holdRightClick(boolean hold) {
-        rightClickHeld = hold;
         if (mc.options == null) return;
+
+        if (hold && !rightClickHeld) {
+            OptionsHelper.disableToggleUse();
+        } else if (!hold && rightClickHeld) {
+            OptionsHelper.restoreToggleUse();
+        }
+
+        rightClickHeld = hold;
         mc.options.keyUse.setDown(hold);
     }
 
-    
-    // STOP ALL INPUTS
     public static void stopAll() {
         rightClickHeld = false;
 

@@ -1,5 +1,6 @@
 package com.roboo;
 
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.InteractionHand;
@@ -11,9 +12,21 @@ public class InventoryHelper {
     public static final String WITHER_TOKEN_NAME = "Lord Token";
     public static final String DRAGON_KEY_NAME   = "Dragon's Nest Key";
 
-    private static int cachedSlot = -1;
+    private static int cachedSlot       = -1;
+    private static int restoreCountdown = -1;
 
-    
+    public static void init() {
+        ClientTickEvents.END_CLIENT_TICK.register(client -> onTick());
+    }
+
+    private static void onTick() {
+        if (restoreCountdown < 0) return;
+        if (--restoreCountdown == 0) {
+            restoreSlotNow();
+        }
+    }
+
+
     // FIND SLOT BY ITEM NAME (HOTBAR)
     public static int findItemSlot(String itemName) {
         if (mc.player == null) return -1;
@@ -25,6 +38,7 @@ public class InventoryHelper {
         }
         return -1;
     }
+
     public static int findTokenSlot() {
         return findItemSlot(WITHER_TOKEN_NAME);
     }
@@ -33,27 +47,34 @@ public class InventoryHelper {
         return findTokenSlot() != -1;
     }
 
-    
+
     // SELECT SLOT
     public static void selectSlot(int slot) {
         if (mc.player == null || slot < 0 || slot > 8) return;
         mc.player.getInventory().setSelectedSlot(slot);
     }
 
-    
+
     // CACHE / RESTORE
     public static void cacheSlot() {
         if (mc.player == null) return;
         cachedSlot = mc.player.getInventory().getSelectedSlot();
     }
 
+    // Deferred by 2 ticks so the server sees the item use before we switch back
     public static void restoreSlot() {
-        if (mc.player == null || cachedSlot == -1) return;
-        mc.player.getInventory().setSelectedSlot(cachedSlot);
-        cachedSlot = -1;
+        if (cachedSlot == -1) return;
+        restoreCountdown = 2;
     }
 
-    
+    private static void restoreSlotNow() {
+        if (mc.player == null || cachedSlot == -1) return;
+        mc.player.getInventory().setSelectedSlot(cachedSlot);
+        cachedSlot       = -1;
+        restoreCountdown = -1;
+    }
+
+
     // USE ITEM BY NAME
     public static boolean useItem(String itemName) {
         if (mc.player == null || mc.gameMode == null) return false;
@@ -65,7 +86,7 @@ public class InventoryHelper {
         selectSlot(slot);
         mc.gameMode.useItem(mc.player, InteractionHand.MAIN_HAND);
         mc.player.swing(InteractionHand.MAIN_HAND);
-        restoreSlot();
+        restoreSlot(); // deferred
 
         return true;
     }

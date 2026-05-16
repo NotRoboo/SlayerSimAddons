@@ -15,16 +15,12 @@ public class ConfigManager {
             .resolve("autowither.json");
 
     private static class ConfigData {
-        // Boss masters
-        boolean autoWitherBossEnabled    = true;
-        boolean autoDragonBossEnabled    = true;
-        // Shared combat
-        boolean comboAttackEnabled       = true;
-        boolean autoDodgeEnabled         = true;
-        // AFK features
-        boolean autoReconnectEnabled     = true;
-        boolean hexPathfindingEnabled    = false;
-        boolean fishingPathfindingEnabled = false;
+        boolean autoWitherBossEnabled = true;
+        boolean autoDragonBossEnabled = true;
+        boolean comboAttackEnabled    = true;
+        boolean autoDodgeEnabled      = true;
+        boolean autoReconnectEnabled  = true;
+        String  pathfindingMode       = "None";
     }
 
     public static void load() {
@@ -43,8 +39,8 @@ public class ConfigManager {
             ModConfig.setComboAttackEnabled(data.comboAttackEnabled);
             ModConfig.setAutoDodgeEnabled(data.autoDodgeEnabled);
             ModConfig.setAutoReconnectEnabled(data.autoReconnectEnabled);
-            ModConfig.setHexPathfindingEnabled(data.hexPathfindingEnabled);
-            ModConfig.setFishingPathfindingEnabled(data.fishingPathfindingEnabled);
+            ModConfig.setPathfindingMode(data.pathfindingMode != null ? data.pathfindingMode : "None");
+
         } catch (IOException e) {
             System.err.println("[AutoWither] Failed to load config: " + e.getMessage());
         }
@@ -52,13 +48,12 @@ public class ConfigManager {
 
     public static void save() {
         ConfigData data = new ConfigData();
-        data.autoWitherBossEnabled     = ModConfig.isAutoWitherBossEnabled();
-        data.autoDragonBossEnabled     = ModConfig.isAutoDragonBossEnabled();
-        data.comboAttackEnabled        = ModConfig.isComboAttackEnabled();
-        data.autoDodgeEnabled          = ModConfig.isAutoDodgeEnabled();
-        data.autoReconnectEnabled      = ModConfig.isAutoReconnectEnabled();
-        data.hexPathfindingEnabled     = ModConfig.isHexPathfindingEnabled();
-        data.fishingPathfindingEnabled = ModConfig.isFishingPathfindingEnabled();
+        data.autoWitherBossEnabled = ModConfig.isAutoWitherBossEnabled();
+        data.autoDragonBossEnabled = ModConfig.isAutoDragonBossEnabled();
+        data.comboAttackEnabled    = ModConfig.isComboAttackEnabled();
+        data.autoDodgeEnabled      = ModConfig.isAutoDodgeEnabled();
+        data.autoReconnectEnabled  = ModConfig.isAutoReconnectEnabled();
+        data.pathfindingMode       = ModConfig.getPathfindingMode();
 
         try (Writer writer = new FileWriter(CONFIG_PATH.toFile())) {
             GSON.toJson(data, writer);
