@@ -65,6 +65,7 @@ public class ElfHelper {
         if (clean.contains("warping...")) {
             stage = Stage.INIT_ROTATE;
             modTriggered = false;
+            OptionsHelper.enableAutoJump();
         }
     }
 
@@ -128,6 +129,7 @@ public class ElfHelper {
                 if (now >= pendingVisTime) {
                     runCommand("visibility 0");
                     stage = Stage.IDLE;
+                    OptionsHelper.restoreAutoJump();
                 }
             }
         }
@@ -138,6 +140,7 @@ public class ElfHelper {
         modTriggered = false;
         pendingMbagTime = 0;
         MovementHelper.stopMovement();
+        OptionsHelper.restoreAutoJump();
     }
 
     private static float wrapDegrees(float degrees) {
