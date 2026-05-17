@@ -36,8 +36,6 @@ public class DragonBossHelper {
     private static final double ARENA_MIN_Z =  -20.0;
     private static final double ARENA_MAX_Z =   -5.0;
 
-
-    // STATE
     private enum Phase {
         IDLE,
         ROTATE_TO_BOSS,
@@ -53,11 +51,11 @@ public class DragonBossHelper {
     private static boolean dodgeTriggered      = false;
     private static boolean waitingToStopDodge  = false;
     private static boolean comboActive         = false;
+    private static int parryCountdown = -1;
 
     private static long entryTime  = 0;
     private static long safeTime   = 0;
 
-    // Summon state
     private static boolean atSummonPos        = false;
     private static long    summonPosEntryTime = 0;
     private static int     summonAttemptCount = 0;
@@ -86,7 +84,6 @@ public class DragonBossHelper {
                 && py >= ARENA_MIN_Y && py <= ARENA_MAX_Y
                 && pz >= ARENA_MIN_Z && pz <= ARENA_MAX_Z;
 
-        // Apply/restore options based on arena presence
         if (inArena && !optionsApplied) {
             OptionsHelper.enableAutoJump();
             OptionsHelper.disableToggleSneak();
@@ -108,12 +105,18 @@ public class DragonBossHelper {
 
         long now = System.currentTimeMillis();
 
+        if (parryCountdown > 0) {
+            parryCountdown--;
+        } else if (parryCountdown == 0) {
+            ParryHelper.trigger();
+            parryCountdown = -1;
+        }
+
         switch (phase) {
             case ROTATE_TO_BOSS -> {
-                if (now - entryTime < 1500) {
-                    if (RotationHelper.lookAt(BOSS_YAW, BOSS_PITCH)) {
-                        phase = Phase.STRAFE_LEFT;
-                    }
+                boolean rotDone = RotationHelper.lookAt(BOSS_YAW, BOSS_PITCH);
+                if (rotDone || now - entryTime >= 1500) {
+                    phase = Phase.STRAFE_LEFT;
                 }
             }
             case STRAFE_LEFT -> {
@@ -134,12 +137,10 @@ public class DragonBossHelper {
             if (MovementHelper.moveToX(SAFE_X)) {
                 moveToSafe = false;
                 if (dodgeQueued && !dodgeTriggered && ModConfig.isAutoDodgeEnabled()) {
-                    DodgeHelper.setRequiredSafes(parryQueued);
+                    DodgeHelper.setRequiredSafes(false);
                     DodgeHelper.start();
-                    if (parryQueued) ParryHelper.trigger();
                     dodgeTriggered = true;
                     dodgeQueued    = false;
-                    parryQueued    = false;
                 }
             }
         }
@@ -189,22 +190,24 @@ public class DragonBossHelper {
             if (!atSummonPos) {
                 atSummonPos        = true;
                 summonPosEntryTime = System.currentTimeMillis();
-                summonAttemptCount = 1;
+                summonAttemptCount = 0;
                 summonFailed       = false;
-                boolean used = InventoryHelper.useDragonKey();
-                if (!used) {
-                    client.gui.getChat().addMessage(Component.literal(
-                            "§e[DragonBoss] §cNo Dragon Key found in hotbar!"));
-                }
             } else if (!summonFailed) {
                 long elapsed = System.currentTimeMillis() - summonPosEntryTime;
-                if (summonAttemptCount == 1 && elapsed >= 1000) {
+                if (summonAttemptCount == 0 && elapsed >= 1000) {
+                    summonAttemptCount = 1;
+                    boolean used = InventoryHelper.useDragonKey();
+                    if (!used) {
+                        client.gui.getChat().addMessage(Component.literal(
+                                "§e[DragonBoss] §cNo Dragon Key found in hotbar!"));
+                    }
+                } else if (summonAttemptCount == 1 && elapsed >= 3000) {
                     summonAttemptCount = 2;
                     InventoryHelper.useDragonKey();
-                } else if (summonAttemptCount == 2 && elapsed >= 5000) {
+                } else if (summonAttemptCount == 2 && elapsed >= 6000) {
                     summonAttemptCount = 3;
                     InventoryHelper.useDragonKey();
-                } else if (summonAttemptCount == 3 && elapsed >= 10000) {
+                } else if (summonAttemptCount == 3 && elapsed >= 11000) {
                     summonFailed = true;
                     client.gui.getChat().addMessage(Component.literal(
                             "§e[DragonBoss] §cSummon failed — still at summon position after 15s!"));
@@ -224,6 +227,7 @@ public class DragonBossHelper {
         String lower = msg.toLowerCase();
 
         if (lower.contains("you opened the nest of black dragon")) {
+            InventoryHelper.restoreSlotAfterSummon();
             phase     = Phase.ROTATE_TO_BOSS;
             entryTime = System.currentTimeMillis();
             resetCombatState();
@@ -238,7 +242,6 @@ public class DragonBossHelper {
             moveToSafe     = true;
             holdClick      = false;
             dodgeQueued    = true;
-            parryQueued    = false;
             dodgeTriggered = false;
         }
 
@@ -250,8 +253,8 @@ public class DragonBossHelper {
             moveToSafe     = true;
             holdClick      = false;
             dodgeQueued    = true;
-            parryQueued    = true;
             dodgeTriggered = false;
+            parryCountdown = 15;
         }
 
         else if (lower.contains("safe!!!")) {
@@ -259,7 +262,6 @@ public class DragonBossHelper {
             moveToSafe         = false;
             comboActive        = false;
             dodgeQueued        = false;
-            parryQueued        = false;
             safeTime           = System.currentTimeMillis();
             waitingToStopDodge = true;
             phase = Phase.MOVE_FORWARD;
@@ -279,7 +281,7 @@ public class DragonBossHelper {
         wasHolding         = false;
         comboActive        = false;
         dodgeQueued        = false;
-        parryQueued        = false;
+        parryCountdown     = -1;
         dodgeTriggered     = false;
         waitingToStopDodge = false;
         MovementHelper.stopMovement();

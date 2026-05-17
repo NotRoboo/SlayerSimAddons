@@ -61,10 +61,9 @@ public class InventoryHelper {
         cachedSlot = mc.player.getInventory().getSelectedSlot();
     }
 
-    // Deferred by 2 ticks so the server sees the item use before we switch back
     public static void restoreSlot() {
         if (cachedSlot == -1) return;
-        restoreCountdown = 2;
+        restoreCountdown = 10;
     }
 
     private static void restoreSlotNow() {
@@ -72,6 +71,10 @@ public class InventoryHelper {
         mc.player.getInventory().setSelectedSlot(cachedSlot);
         cachedSlot       = -1;
         restoreCountdown = -1;
+    }
+
+    public static void restoreSlotAfterSummon() {
+        restoreSlotNow();
     }
 
 
@@ -82,22 +85,33 @@ public class InventoryHelper {
         int slot = findItemSlot(itemName);
         if (slot == -1) return false;
 
-        cacheSlot();
+        if (cachedSlot == -1) cacheSlot();
+        restoreCountdown = -1;
         selectSlot(slot);
         mc.gameMode.useItem(mc.player, InteractionHand.MAIN_HAND);
         mc.player.swing(InteractionHand.MAIN_HAND);
-        restoreSlot(); // deferred
+        restoreSlot();
 
         return true;
     }
 
-    // Wither summon
-    public static boolean useSummonItem() {
-        return useItem(WITHER_TOKEN_NAME);
+    public static boolean useDragonKey() {
+        if (mc.player == null || mc.gameMode == null) return false;
+
+        int slot = findItemSlot(DRAGON_KEY_NAME);
+        if (slot == -1) return false;
+
+        if (cachedSlot == -1) cacheSlot();
+        restoreCountdown = -1;
+        selectSlot(slot);
+        mc.gameMode.useItem(mc.player, InteractionHand.MAIN_HAND);
+        mc.player.swing(InteractionHand.MAIN_HAND);
+
+        return true;
     }
 
-    // Dragon summon
-    public static boolean useDragonKey() {
-        return useItem(DRAGON_KEY_NAME);
+    // wither summon
+    public static boolean useSummonItem() {
+        return useItem(WITHER_TOKEN_NAME);
     }
 }
