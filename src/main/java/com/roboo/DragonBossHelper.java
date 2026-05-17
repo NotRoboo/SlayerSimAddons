@@ -51,7 +51,6 @@ public class DragonBossHelper {
     private static boolean dodgeTriggered      = false;
     private static boolean waitingToStopDodge  = false;
     private static boolean comboActive         = false;
-    private static int parryCountdown = -1;
 
     private static long entryTime  = 0;
     private static long safeTime   = 0;
@@ -105,13 +104,6 @@ public class DragonBossHelper {
 
         long now = System.currentTimeMillis();
 
-        if (parryCountdown > 0) {
-            parryCountdown--;
-        } else if (parryCountdown == 0) {
-            ParryHelper.trigger();
-            parryCountdown = -1;
-        }
-
         switch (phase) {
             case ROTATE_TO_BOSS -> {
                 boolean rotDone = RotationHelper.lookAt(BOSS_YAW, BOSS_PITCH);
@@ -137,10 +129,12 @@ public class DragonBossHelper {
             if (MovementHelper.moveToX(SAFE_X)) {
                 moveToSafe = false;
                 if (dodgeQueued && !dodgeTriggered && ModConfig.isAutoDodgeEnabled()) {
-                    DodgeHelper.setRequiredSafes(false);
+                    DodgeHelper.setRequiredSafes(parryQueued);
                     DodgeHelper.start();
+                    if (parryQueued) ParryHelper.trigger();
                     dodgeTriggered = true;
                     dodgeQueued    = false;
+                    parryQueued    = false;
                 }
             }
         }
@@ -242,6 +236,7 @@ public class DragonBossHelper {
             moveToSafe     = true;
             holdClick      = false;
             dodgeQueued    = true;
+            parryQueued    = false;
             dodgeTriggered = false;
         }
 
@@ -253,8 +248,8 @@ public class DragonBossHelper {
             moveToSafe     = true;
             holdClick      = false;
             dodgeQueued    = true;
+            parryQueued    = true;
             dodgeTriggered = false;
-            parryCountdown = 15;
         }
 
         else if (lower.contains("safe!!!")) {
@@ -262,6 +257,7 @@ public class DragonBossHelper {
             moveToSafe         = false;
             comboActive        = false;
             dodgeQueued        = false;
+            parryQueued        = false;
             safeTime           = System.currentTimeMillis();
             waitingToStopDodge = true;
             phase = Phase.MOVE_FORWARD;
@@ -281,7 +277,7 @@ public class DragonBossHelper {
         wasHolding         = false;
         comboActive        = false;
         dodgeQueued        = false;
-        parryCountdown     = -1;
+        parryQueued        = false;
         dodgeTriggered     = false;
         waitingToStopDodge = false;
         MovementHelper.stopMovement();
