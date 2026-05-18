@@ -25,7 +25,7 @@ public class AutoWither implements ClientModInitializer {
 		ConfigManager.load();
 
 		KeyMapping.Category category = KeyMapping.Category.register(
-				Identifier.fromNamespaceAndPath("autowither", "main")
+				Identifier.fromNamespaceAndPath("slayersimaddons", "main")
 		);
 
 		toggleKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
@@ -46,6 +46,10 @@ public class AutoWither implements ClientModInitializer {
 		ElfHelper.init();
 		WitherBossHelper.init();
 		DragonBossHelper.init();
+		DarkAuctionHelper.init();
+		AutoStoreHelper.init();
+		Commands.init();
+		HudHelper.init();
 
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
 				dispatcher.register(ClientCommandManager.literal("ss")

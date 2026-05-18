@@ -13,19 +13,9 @@ import java.util.List;
 public class ConfigScreen {
 
     private static final List<String> PATHFINDING_MODES = Arrays.asList(
-            "None",
-            "AutoFish",
-            "Squid",
-            "Megalodon",
-            "Sea Dragon",
-            "Blaze Warden",
-            "Demon",
-            "Magma",
-            "Crystal Op",
-            "Echo",
-            "Vampire",
-            "Priest",
-            "Elf"
+            "None", "AutoFish", "Squid", "Megalodon", "Sea Dragon",
+            "Blaze Warden", "Demon", "Magma", "Crystal Op", "Echo",
+            "Vampire", "Priest", "Elf"
     );
 
     public static Screen build(Screen parent) {
@@ -107,6 +97,93 @@ public class ConfigScreen {
                 )
                 .setSaveConsumer(ModConfig::setPathfindingMode)
                 .build());
+
+
+        // DARK AUCTION HUD
+        ConfigCategory hud = builder.getOrCreateCategory(Component.literal("HUDs"));
+
+        hud.addEntry(entry
+                .startBooleanToggle(Component.literal("Show Dark Auction HUD"), ModConfig.isDarkAuctionHudEnabled())
+                .setDefaultValue(true)
+                .setTooltip(Component.literal("Shows DA countdown, active item, or prompt to visit DA"))
+                .setSaveConsumer(ModConfig::setDarkAuctionHudEnabled)
+                .build());
+
+        hud.addEntry(entry
+                .startIntField(Component.literal("HUD X Position"), ModConfig.getDarkAuctionHudX())
+                .setDefaultValue(10)
+                .setTooltip(Component.literal("Horizontal position of the Dark Auction HUD"))
+                .setSaveConsumer(ModConfig::setDarkAuctionHudX)
+                .build());
+
+        hud.addEntry(entry
+                .startIntField(Component.literal("HUD Y Position"), ModConfig.getDarkAuctionHudY())
+                .setDefaultValue(30)
+                .setTooltip(Component.literal("Vertical position of the Dark Auction HUD"))
+                .setSaveConsumer(ModConfig::setDarkAuctionHudY)
+                .build());
+        
+        hud.addEntry(entry
+                .startIntField(Component.literal("Deposit Timer (seconds)"), ModConfig.getAutoStoreDelay())
+                .setDefaultValue(1200)
+                .setTooltip(Component.literal("How often AutoStore runs (use /mbag timer to change in-game)"))
+                .setSaveConsumer(ModConfig::setAutoStoreDelay)
+                .build());
+
+        hud.addEntry(entry
+                .startBooleanToggle(Component.literal("Show AutoStore HUD"), ModConfig.isAutoStoreHudEnabled())
+                .setDefaultValue(true)
+                .setSaveConsumer(ModConfig::setAutoStoreHudEnabled)
+                .build());
+
+        hud.addEntry(entry
+                .startIntField(Component.literal("AutoStore HUD X"), ModConfig.getAutoStoreHudX())
+                .setDefaultValue(10)
+                .setSaveConsumer(ModConfig::setAutoStoreHudX)
+                .build());
+
+        hud.addEntry(entry
+                .startIntField(Component.literal("AutoStore HUD Y"), ModConfig.getAutoStoreHudY())
+                .setDefaultValue(40)
+                .setSaveConsumer(ModConfig::setAutoStoreHudY)
+                .build());
+
+        hud.addEntry(entry
+                .startBooleanToggle(Component.literal("Show Sprint HUD"), ModConfig.isSprintHudEnabled())
+                .setDefaultValue(true)
+                .setSaveConsumer(ModConfig::setSprintHudEnabled)
+                .build());
+
+        hud.addEntry(entry
+                .startIntField(Component.literal("Sprint HUD X"), ModConfig.getSprintHudX())
+                .setDefaultValue(10)
+                .setSaveConsumer(ModConfig::setSprintHudX)
+                .build());
+
+        hud.addEntry(entry
+                .startIntField(Component.literal("Sprint HUD Y"), ModConfig.getSprintHudY())
+                .setDefaultValue(10)
+                .setSaveConsumer(ModConfig::setSprintHudY)
+                .build());
+
+        hud.addEntry(entry
+                .startBooleanToggle(Component.literal("Show Right Click HUD"), ModConfig.isUseHudEnabled())
+                .setDefaultValue(true)
+                .setSaveConsumer(ModConfig::setUseHudEnabled)
+                .build());
+
+        hud.addEntry(entry
+                .startIntField(Component.literal("Right Click HUD X"), ModConfig.getUseHudX())
+                .setDefaultValue(10)
+                .setSaveConsumer(ModConfig::setUseHudX)
+                .build());
+
+        hud.addEntry(entry
+                .startIntField(Component.literal("Right Click HUD Y"), ModConfig.getUseHudY())
+                .setDefaultValue(20)
+                .setSaveConsumer(ModConfig::setUseHudY)
+                .build());
+
 
         builder.setSavingRunnable(ConfigManager::save);
 

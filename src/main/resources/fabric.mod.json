@@ -1,9 +1,9 @@
 {
 	"schemaVersion": 1,
-	"id": "autowither",
+	"id": "slayersimaddons",
 	"version": "${version}",
-	"name": "AutoWither",
-	"description": "Withers are boring!",
+	"name": "SlayerSimAddons",
+	"description": "SlayerSim Addons!",
 	"authors": [
 		"Roboo"
 	],
