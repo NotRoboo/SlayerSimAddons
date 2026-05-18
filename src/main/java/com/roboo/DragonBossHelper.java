@@ -36,6 +36,11 @@ public class DragonBossHelper {
     private static final double ARENA_MIN_Z =  -20.0;
     private static final double ARENA_MAX_Z =   -5.0;
 
+    private static final double TELEPORT_X         = -90.656;
+    private static final double TELEPORT_Y         =  96.0;
+    private static final double TELEPORT_Z         = -14.351;
+    private static final double TELEPORT_TOLERANCE =   0.2;
+
     private enum Phase {
         IDLE,
         ROTATE_TO_BOSS,
@@ -103,6 +108,20 @@ public class DragonBossHelper {
         }
 
         long now = System.currentTimeMillis();
+
+        if (phase == Phase.IDLE) {
+            boolean nearTeleport =
+                    Math.abs(px - TELEPORT_X) <= TELEPORT_TOLERANCE &&
+                            Math.abs(py - TELEPORT_Y) <= TELEPORT_TOLERANCE &&
+                            Math.abs(pz - TELEPORT_Z) <= TELEPORT_TOLERANCE;
+
+            if (nearTeleport) {
+                InventoryHelper.restoreSlotAfterSummon();
+                phase     = Phase.ROTATE_TO_BOSS;
+                entryTime = System.currentTimeMillis();
+                resetCombatState();
+            }
+        }
 
         switch (phase) {
             case ROTATE_TO_BOSS -> {
@@ -220,14 +239,7 @@ public class DragonBossHelper {
 
         String lower = msg.toLowerCase();
 
-        if (lower.contains("you opened the nest of black dragon")) {
-            InventoryHelper.restoreSlotAfterSummon();
-            phase     = Phase.ROTATE_TO_BOSS;
-            entryTime = System.currentTimeMillis();
-            resetCombatState();
-        }
-
-        else if (lower.contains("dark slash") && ModConfig.isComboAttackEnabled()) {
+        if (lower.contains("dark slash") && ModConfig.isComboAttackEnabled()) {
             comboActive    = true;
             dodgeTriggered = false;
         }
