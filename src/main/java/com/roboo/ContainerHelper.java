@@ -90,6 +90,8 @@ public class ContainerHelper {
                                     PriestHelper.trigger();
                                 } else if (ModConfig.getPathfindingMode().equals("Elf")) {
                                     ElfHelper.trigger();
+                                } else if (ModConfig.getPathfindingMode().equals("Echo Angel")) {
+                                    EchoAngelHelper.trigger();
                                 }
                             }
 
@@ -115,11 +117,12 @@ public class ContainerHelper {
 
     private static String getDestination(String mode) {
         return switch (mode) {
-            case "Echo"     -> "Crescent Tower";
-            case "AutoFish" -> "Ancient Volcano";
+            case "Echo"       -> "Crescent Tower";
+            case "AutoFish"   -> "Ancient Volcano";
             case "Vampire",
                  "Priest",
-                 "Elf"    -> "Moonlight Island";
+                 "Elf",
+                 "Echo Angel" -> "Moonlight Island";
             default         -> null;
         };
     }

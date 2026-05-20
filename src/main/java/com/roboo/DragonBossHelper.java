@@ -12,9 +12,9 @@ public class DragonBossHelper {
     private static final double SPAWN_STRAFE_Z       = -13.5;
     private static final double STRAFE_Z_TOLERANCE   = 0.175;
 
-    private static final double ATTACK_X             = -106.0;
+    private static final double ATTACK_X             = -104.7;
 
-    private static final double SAFE_X               = -102.5;
+    private static final double SAFE_X               = -101.5;
 
     private static final double SUMMON_X             = -119.5;
     private static final double SUMMON_Y             =  106.0;
@@ -27,7 +27,7 @@ public class DragonBossHelper {
     private static final double DEATH_SUMMON_TOLERANCE = 1.5;
 
     private static final float BOSS_YAW   = 90f;
-    private static final float BOSS_PITCH =  0f;
+    private static final float BOSS_PITCH =  -28f;
 
     private static final double ARENA_MIN_X = -112.0;
     private static final double ARENA_MAX_X =  -87.0;
@@ -89,11 +89,9 @@ public class DragonBossHelper {
                 && pz >= ARENA_MIN_Z && pz <= ARENA_MAX_Z;
 
         if (inArena && !optionsApplied) {
-            OptionsHelper.enableAutoJump();
             OptionsHelper.disableToggleSneak();
             optionsApplied = true;
         } else if (!inArena && optionsApplied) {
-            OptionsHelper.restoreAutoJump();
             OptionsHelper.restoreToggleSneak();
             optionsApplied = false;
         }
@@ -304,7 +302,6 @@ public class DragonBossHelper {
         summonFailed       = false;
 
         if (optionsApplied) {
-            OptionsHelper.restoreAutoJump();
             OptionsHelper.restoreToggleSneak();
             optionsApplied = false;
         }

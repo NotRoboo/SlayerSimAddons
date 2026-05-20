@@ -15,7 +15,7 @@ public class ConfigScreen {
     private static final List<String> PATHFINDING_MODES = Arrays.asList(
             "None", "AutoFish", "Squid", "Megalodon", "Sea Dragon",
             "Blaze Warden", "Demon", "Magma", "Crystal Op", "Echo",
-            "Vampire", "Priest", "Elf"
+            "Vampire", "Priest", "Elf", "Echo Angel"
     );
 
     public static Screen build(Screen parent) {
@@ -93,7 +93,8 @@ public class ConfigScreen {
                         Component.literal("Echo"),
                         Component.literal("Vampire"),
                         Component.literal("Priest"),
-                        Component.literal("Elf")
+                        Component.literal("Elf"),
+                        Component.literal("Echo Angel")
                 )
                 .setSaveConsumer(ModConfig::setPathfindingMode)
                 .build());

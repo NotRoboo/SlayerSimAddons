@@ -44,6 +44,7 @@ public class AutoWither implements ClientModInitializer {
 		VampireHelper.init();
 		PriestHelper.init();
 		ElfHelper.init();
+		EchoAngelHelper.init();
 		WitherBossHelper.init();
 		DragonBossHelper.init();
 		DarkAuctionHelper.init();
@@ -87,6 +88,7 @@ public class AutoWither implements ClientModInitializer {
 				VampireHelper.reset();
 				PriestHelper.reset();
 				ElfHelper.reset();
+				EchoAngelHelper.reset();
 				InputHelper.stopAll();
 				DodgeHelper.stop();
 				ParryHelper.reset();
