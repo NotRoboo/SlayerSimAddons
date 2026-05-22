@@ -83,6 +83,12 @@ public class ContainerHelper {
 
                             if (destination.equals("Crescent Tower")) {
                                 CrescentTowerHelper.trigger();
+                            } else if (destination.equals("Ancient Volcano")) {
+                                if (ModConfig.getPathfindingMode().equals("Blaze Warden")) {
+                                    BlazeHelper.trigger();
+                                }
+                            } else if (destination.equals("Extreme Cold Cavern")) {
+                                IceDragHelper.trigger();
                             } else if (destination.equals("Moonlight Island")) {
                                 if (ModConfig.getPathfindingMode().equals("Vampire")) {
                                     VampireHelper.trigger();
@@ -117,12 +123,14 @@ public class ContainerHelper {
 
     private static String getDestination(String mode) {
         return switch (mode) {
-            case "Echo"       -> "Crescent Tower";
-            case "AutoFish"   -> "Ancient Volcano";
+            case "Echo"         -> "Crescent Tower";
+            case "AutoFish",
+                 "Blaze Warden" -> "Ancient Volcano";
+            case "Ice Dragon"   -> "Extreme Cold Cavern";
             case "Vampire",
                  "Priest",
                  "Elf",
-                 "Echo Angel" -> "Moonlight Island";
+                 "Echo Angel"   -> "Moonlight Island";
             default         -> null;
         };
     }

@@ -124,6 +124,37 @@ public class MovementHelper {
     }
 
     // =========================
+    // WALK FORWARD (NO YAW CHECK)
+    // =========================
+    public static boolean walkForwardToX(double targetX, double tolerance) {
+        if (mc.player == null) return false;
+
+        double diff = mc.player.getX() - targetX;
+
+        if (Math.abs(diff) <= tolerance) {
+            stopMovement();
+            return true;
+        }
+
+        mc.options.keyUp.setDown(true);
+        return false;
+    }
+
+    public static boolean walkForwardToZ(double targetZ, double tolerance) {
+        if (mc.player == null) return false;
+
+        double diff = mc.player.getZ() - targetZ;
+
+        if (Math.abs(diff) <= tolerance) {
+            stopMovement();
+            return true;
+        }
+
+        mc.options.keyUp.setDown(true);
+        return false;
+    }
+
+    // =========================
     // UTIL
     // =========================
     private static boolean isNear(float yaw, float target) {

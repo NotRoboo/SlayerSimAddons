@@ -14,8 +14,8 @@ public class ConfigScreen {
 
     private static final List<String> PATHFINDING_MODES = Arrays.asList(
             "None", "AutoFish", "Squid", "Megalodon", "Sea Dragon",
-            "Blaze Warden", "Demon", "Magma", "Crystal Op", "Echo",
-            "Vampire", "Priest", "Elf", "Echo Angel"
+            "Ice Dragon", "Blaze Warden", "Demon", "Magma", "Crystal Op",
+            "Echo", "Vampire", "Priest", "Elf", "Echo Angel"
     );
 
     public static Screen build(Screen parent) {
@@ -86,7 +86,8 @@ public class ConfigScreen {
                         Component.literal("Squid — TBD"),
                         Component.literal("Megalodon — TBD"),
                         Component.literal("Sea Dragon — TBD"),
-                        Component.literal("Blaze Warden — TBD"),
+                        Component.literal("Ice Dragon - TURN OFF SPEED"),
+                        Component.literal("Blaze Warden"),
                         Component.literal("Demon — TBD"),
                         Component.literal("Magma — TBD"),
                         Component.literal("Crystal Op — TBD"),

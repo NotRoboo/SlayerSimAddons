@@ -38,6 +38,8 @@ public class ReconnectHelper {
         ClientTickEvents.END_CLIENT_TICK.register(client -> onTick());
     }
 
+    private static final String GAME_MENU_ITEM = "Game Menu (Right Click)";
+
     private static void onTick() {
         if (mc.player == null) return;
         if (!ModConfig.isAutoReconnectEnabled()) return;
@@ -49,6 +51,15 @@ public class ReconnectHelper {
             limboRetryInterval = LIMBO_RETRY_MIN +
                     (long)((LIMBO_RETRY_MAX - LIMBO_RETRY_MIN) * Math.random());
             runCommand("lobby");
+        }
+
+        if (InventoryHelper.findItemSlot(GAME_MENU_ITEM) != -1
+                && now - lastHousingQueued >= COOLDOWN_MS) {
+            lastHousingQueued = now;
+            limboActive = false;
+            long delay = resolveDelay(now);
+            enqueueAt("lobby housing", delay);
+            enqueueAt("visit xsublimity", delay + 5000);
         }
 
         while (!commandQueue.isEmpty()) {
@@ -80,14 +91,9 @@ public class ReconnectHelper {
             }
         }
 
-        if (clean.contains("unclaimed leveling reward!")) {
-            if (now - lastHousingQueued >= COOLDOWN_MS) {
-                lastHousingQueued = now;
-                limboActive = false;
-                long delay = resolveDelay(now);
-                enqueueAt("lobby housing", delay);
-                enqueueAt("visit xsublimity", delay + 5000);
-            }
+        if (clean.contains("ｓｌａｙｅｒ ｓｉｍｕｌａｔｏｒ")) {
+            commandQueue.clear();
+            lastHousingQueued = now;
         }
     }
 
