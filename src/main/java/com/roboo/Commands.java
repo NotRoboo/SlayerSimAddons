@@ -32,6 +32,18 @@ public class Commands {
                                         })
                                 )
                         )
+
+                        .then(ClientCommandManager.literal("emptyinv")
+                                .executes(ctx -> {
+                                    if (EmptyInvHelper.isRunning()) {
+                                        EmptyInvHelper.stop();
+                                        EmptyInvHelper.msg("§cStopped.");
+                                    } else {
+                                        EmptyInvHelper.start();
+                                    }
+                                    return 1;
+                                })
+                        )
                 )
         );
     }

@@ -46,6 +46,7 @@ public class AutoWither implements ClientModInitializer {
 		PriestHelper.init();
 		ElfHelper.init();
 		EchoAngelHelper.init();
+		EmptyInvHelper.init();
 		IceDragHelper.init();
 		WitherBossHelper.init();
 		DragonBossHelper.init();
