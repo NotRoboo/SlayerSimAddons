@@ -136,21 +136,21 @@ public class MacroManager {
         }
 
         mc.player.setPos(loaded.startX, loaded.startY, loaded.startZ);
-
         snapToInitialCamera();
-
-        warmupTicksRemaining = WARMUP_TICKS;
-        sprintKeyHoldTicks   = 0;
-
-        if (loaded.recordedWhileSprinting && !mc.player.isSprinting()) {
-            sprintKeyHoldTicks = SPRINT_KEY_HOLD_TICKS;
-            mc.options.keySprint.setDown(true);
-        }
 
         playing = true;
         playbackIndex = 0;
         playbackStartNano = 0L;
-        MacroInputPlayback.setActive(true);
+
+        if (loaded.recordedWhileSprinting && !mc.player.isSprinting()) {
+            sprintKeyHoldTicks = SPRINT_KEY_HOLD_TICKS;
+            mc.options.keySprint.setDown(true);
+            warmupTicksRemaining = WARMUP_TICKS + SPRINT_KEY_HOLD_TICKS;
+        } else {
+            sprintKeyHoldTicks = 0;
+            warmupTicksRemaining = WARMUP_TICKS;
+        }
+
         System.out.println("[Macro] Playback started: " + loaded.name);
         return true;
     }
@@ -189,12 +189,15 @@ public class MacroManager {
             if (sprintKeyHoldTicks == 0) {
                 mc.options.keySprint.setDown(false);
             }
-            return;
         }
 
         if (warmupTicksRemaining > 0) {
             warmupTicksRemaining--;
             return;
+        }
+
+        if (!MacroInputPlayback.isActive()) {
+            MacroInputPlayback.setActive(true);
         }
 
         if (playbackStartNano == 0L) playbackStartNano = nowNano;
